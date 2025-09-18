@@ -29,6 +29,7 @@
 	},
 	"dependencies": {
 		"clsx": "^2.1.1",
+		"papaparse": "^5.5.3",
 		"svelte-motion": "^0.12.2",
 		"tailwind-merge": "^3.3.1"
 	}

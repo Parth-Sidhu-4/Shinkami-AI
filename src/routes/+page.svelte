@@ -1,256 +1,300 @@
 <script lang="ts">
-	import TrainRow from '$lib/components/TrainRow.svelte';
+	/* --- your script block remains unchanged --- */
+	import Papa from 'papaparse';
 	import DetailsModal from '$lib/components/DetailsModal.svelte';
 	import RecommendationModal from '$lib/components/RecommendationModal.svelte';
 	import AuditLog from '$lib/components/AuditLog.svelte';
 	import KpiSection from '$lib/components/KpiSection.svelte';
 	import GenerateButton from '$lib/components/GenerateButton.svelte';
-	import { mockTrains as initialTrains } from '$lib/mockData';
-	import type { Train } from '$lib/mockData';
-	import { slide } from 'svelte/transition';
+	import FileUpload from '$lib/components/FileUpload.svelte';
 
 	let showAuditLog = false;
+	let currentTab: 'dashboard' | 'logs' | 'hints' = 'dashboard';
 
-	let mockTrains: Train[];
-	let selectedTrain: Train | null = null;
-	let recommendationResult: (Train & { rank_score: number })[] | null = null;
-	let sortKey: keyof Train = 'train_id';
-	let sortDirection: 'asc' | 'desc' = 'asc';
+	let csvData: any[] = [];
+	let selectedTrain: any = null;
+	let recommendationResult: any[] | null = null;
 	let filterText = '';
+	let uploadedFile: File | null = null;
 	type LogEntry = { message: string; timestamp: Date };
 	let logEntries: LogEntry[] = [];
-	function getFakeAIPrediction(train: Train): number {
-		if (train.violates_mandatory_fitness || train.critical_job_card_flag) return 0;
-		if (train.cleaning_required && !train.cleaning_slot_booked) return 40;
-		if (train.wear_index > 0.7) return 65;
-		return 99;
-	}
+
+	let requiredServiceFleetSize = 0;
+	$: requiredServiceFleetSize = csvData.length;
+
+	export const columnMap: Record<string, string> = {
+		train_id: 'Train ID',
+		rake_status_current: 'Status',
+		recommendation: 'Recommendation',
+		probability_of_use: 'Readiness %',
+		odometer_total_km: 'Odometer',
+		shunting_moves_needed: 'Shunting Moves'
+	};
+	const mainHeaders = Object.values(columnMap);
+
 	function addToLog(message: string) {
 		const newEntry: LogEntry = { message, timestamp: new Date() };
 		logEntries = [newEntry, ...logEntries];
 	}
-	const processedTrains = initialTrains.map((train) => ({
-		...train,
-		readiness_probability: getFakeAIPrediction(train)
-	}));
-	mockTrains = processedTrains;
-	function openModal(train: Train) {
+
+	function handleCsvUpload() {
+		if (!uploadedFile) return;
+		Papa.parse(uploadedFile, {
+			header: true,
+			skipEmptyLines: true,
+			complete: (results) => {
+				if (!results.data || !Array.isArray(results.data)) {
+					addToLog('CSV parse failed.');
+					return;
+				}
+				csvData = (results.data as any[]).map((row: any) => {
+					if (!row) return {};
+					let status = '';
+					switch ((row['rake_status_current'] || '').toLowerCase()) {
+						case 'in_service':
+							status = 'Ready';
+							break;
+						case 'in_ibl':
+							status = 'On Hold';
+							break;
+						case 'stabled':
+							status = 'Excluded';
+							break;
+						default:
+							status = row['rake_status_current'] || '';
+					}
+					return {
+						'Train ID': row['train_id'] ?? '',
+						Odometer: row['odometer_total_km'] ?? '',
+						Recommendation: row['recommendation'] ?? '',
+						'Readiness %': row['probability_of_use'] ?? '',
+						'Shunting Moves': row['shunting_moves_needed'] ?? '',
+						Status: status,
+						_original: row
+					};
+				});
+				addToLog(`CSV uploaded: ${uploadedFile.name}`);
+			},
+			error: (err) => {
+				console.error(err);
+				addToLog('Error parsing CSV.');
+			}
+		});
+	}
+
+	function updateCell(rowIndex: number, key: string, value: string) {
+		if (!csvData[rowIndex]) return;
+		csvData[rowIndex][key] = value;
+	}
+
+	async function generateRecommendation() {
+		if (!uploadedFile) {
+			addToLog('No CSV file uploaded for recommendation.');
+			return;
+		}
+		try {
+			const formData = new FormData();
+			formData.append('file', uploadedFile);
+
+			const response = await fetch('/api/predict', { method: 'POST', body: formData });
+			if (!response.ok) {
+				const errText = await response.text();
+				throw new Error(`API Error: ${errText}`);
+			}
+			const respText = await response.text();
+			const parsed = Papa.parse(respText, { header: true, skipEmptyLines: true });
+			if (!parsed.data || !Array.isArray(parsed.data)) {
+				throw new Error('Invalid CSV returned from API');
+			}
+			csvData = parsed.data.map((row: any) => {
+				if (!row) return {};
+				let status = '';
+				switch ((row['rake_status_current'] || '').toLowerCase()) {
+					case 'in_service':
+						status = 'Ready';
+						break;
+					case 'in_ibl':
+						status = 'On Hold';
+						break;
+					case 'stabled':
+						status = 'Excluded';
+						break;
+					default:
+						status = row['rake_status_current'] || '';
+				}
+				return {
+					'Train ID': row['train_id'] ?? '',
+					Odometer: row['odometer_total_km'] ?? '',
+					Recommendation: row['recommendation'] ?? '',
+					'Readiness %':
+						row['predicted_probability_of_use'] !== undefined
+							? (row['predicted_probability_of_use'] * 100).toFixed(1) + '%'
+							: row['probability_of_use'] !== undefined
+								? (row['probability_of_use'] * 100).toFixed(1) + '%'
+								: '',
+					'Shunting Moves': row['shunting_moves_needed'] ?? '',
+					Status: status,
+					_original: row
+				};
+			});
+			addToLog('New recommendations fetched from API.');
+		} catch (err) {
+			console.error(err);
+			addToLog('Error generating recommendations.');
+		}
+	}
+
+	function openModal(train: any) {
 		selectedTrain = train;
 	}
 	function closeModal() {
 		selectedTrain = null;
 	}
-	const getStatus = (train: Train): 'Ready' | 'On Hold' | 'Excluded' => {
-		if (train.manual_override?.decision === 'Induct') return 'Ready';
-		if (train.manual_override?.decision === 'Hold') return 'Excluded';
-		if (train.violates_mandatory_fitness || train.critical_job_card_flag) return 'Excluded';
-		if (train.cleaning_required && !train.cleaning_slot_booked) return 'On Hold';
-		return 'Ready';
-	};
-	function handleOverride(trainId: string, decision: 'Induct' | 'Hold', reason: string) {
-		mockTrains = mockTrains.map((train) => {
-			if (train.train_id === trainId) {
-				const newOverride =
-					train.manual_override?.decision === decision ? undefined : { decision, reason };
-				return { ...train, manual_override: newOverride };
-			}
-			return train;
-		});
-		addToLog(`Supervisor forced ${decision.toUpperCase()} on train ${trainId}. Reason: ${reason}`);
-	}
-	function generateRecommendation() {
-		const eligibleTrains = mockTrains.filter((t) => getStatus(t) === 'Ready');
-		const scoredTrains = eligibleTrains.map((train) => {
-			let score = 100;
-			score -= train.wear_index * 10;
-			score -= train.shunting_moves_needed * 2;
-			if (train.branding_current_exposure_hours < train.branding_min_exposure_hours) {
-				score += 5;
-			}
-			return { ...train, rank_score: score };
-		});
-		scoredTrains.sort((a, b) => b.rank_score - a.rank_score);
-		recommendationResult = scoredTrains.slice(0, requiredServiceFleetSize);
-		addToLog('System recommendation generated.');
-	}
-	function runPreview(trainId: string, decision: 'Induct' | 'Hold') {
-		const simulatedTrains = mockTrains.map((t) => ({ ...t }));
-		const trainToOverride = simulatedTrains.find((t) => t.train_id === trainId);
-		if (trainToOverride) {
-			trainToOverride.manual_override = { decision, reason: 'PREVIEW' };
-		}
-		const eligibleTrains = simulatedTrains.filter((t) => getStatus(t) === 'Ready');
-		const scoredTrains = eligibleTrains.map((train) => {
-			let score = 100;
-			score -= train.wear_index * 10;
-			score -= train.shunting_moves_needed * 2;
-			if (train.branding_current_exposure_hours < train.branding_min_exposure_hours) {
-				score += 5;
-			}
-			return { ...train, rank_score: score };
-		});
-		scoredTrains.sort((a, b) => b.rank_score - a.rank_score);
-		recommendationResult = scoredTrains.slice(0, requiredServiceFleetSize);
-		addToLog(`Previewed impact of ${decision.toUpperCase()} on train ${trainId}.`);
-	}
-	function sortBy(key: keyof Train) {
-		if (sortKey === key) {
-			sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-		} else {
-			sortKey = key;
-			sortDirection = 'asc';
-		}
-	}
-	function exportToCsv() {
-		addToLog('Data exported to CSV.');
-		const headers = [
-			'Train ID',
-			'Status',
-			'Reason',
-			'Readiness %',
-			'Mileage (km)',
-			'Shunting Moves'
-		];
-		const rows = displayedTrains.map((train) => {
-			const status = getStatus(train);
-			const reason =
-				train.manual_override?.reason ||
-				(status === 'Ready'
-					? 'All checks passed'
-					: status === 'On Hold'
-						? 'Awaiting cleaning slot'
-						: 'System Excluded');
-			return [
-				train.train_id,
-				status,
-				`"${reason.replace(/"/g, '""')}"`,
-				train.readiness_probability,
-				train.odometer_total_km,
-				train.shunting_moves_needed
-			].join(',');
-		});
-		const csvContent = [headers.join(','), ...rows].join('\n');
-		const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-		const link = document.createElement('a');
-		const url = URL.createObjectURL(blob);
-		link.setAttribute('href', url);
-		link.setAttribute('download', `kmrl_roster_${new Date().toISOString().split('T')[0]}.csv`);
-		link.style.visibility = 'hidden';
-		document.body.appendChild(link);
-		link.click();
-		document.body.removeChild(link);
-	}
-	$: readyTrains = mockTrains.filter((t) => getStatus(t) === 'Ready');
-	$: onHoldTrains = mockTrains.filter((t) => getStatus(t) === 'On Hold');
-	$: excludedTrains = mockTrains.filter((t) => getStatus(t) === 'Excluded');
-	$: totalShuntingMoves = readyTrains.reduce((sum, train) => sum + train.shunting_moves_needed, 0);
-	const requiredServiceFleetSize = 20;
-	$: displayedTrains = mockTrains
-		.filter((train) => train.train_id.toLowerCase().includes(filterText.toLowerCase()))
-		.sort((a, b) => {
-			const valA = a[sortKey];
-			const valB = b[sortKey];
-			if (valA == null) return 1;
-			if (valB == null) return -1;
-			if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
-			if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
-			return 0;
-		});
+
+	$: displayedTrains = csvData.filter((train) =>
+		(train['Train ID'] || '').toString().toLowerCase().includes(filterText.toLowerCase())
+	);
 </script>
 
-<div class="relative flex min-h-screen bg-slate-50 font-sans">
-	<main class="flex-1 p-4 transition-all duration-300 md:p-8" class:lg:mr-96={showAuditLog}>
-		<div class="mb-8">
-			<div class="mb-4 flex items-center space-x-4">
-				<div class="h-32 w-32 rounded-xl shadow-md">
-					<img
-						src="https://i.ibb.co/qhXCRy8/Gemini-Generated-Image-4aph8l4aph8l4aph.png"
-						alt="Shinkami AI Logo"
-						class="h-full w-full rounded-xl object-cover"
-					/>
-				</div>
-				<p class="text-3xl font-bold text-slate-800">Welcome!</p>
-			</div>
-			<div class="flex items-center justify-between">
+<!-- Layout -->
+<div class="relative flex min-h-screen bg-gray-50 text-gray-900">
+	<main class="flex-1 p-6 md:p-10" class:lg:mr-96={showAuditLog}>
+		<!-- Header -->
+		<div class="mb-8 flex items-center justify-between">
+			<div class="flex items-center space-x-4">
+				<img
+					src="https://i.ibb.co/qhXCRy8/Gemini-Generated-Image-4aph8l4aph8l4aph.png"
+					alt="Shinkami AI Logo"
+					class="h-20 w-20 rounded-xl object-cover shadow-md"
+				/>
 				<div>
-					<h1 class="font-bold-italic text-4xl text-slate-800">KMRL Train Readiness</h1>
-					<p class="mt-1 text-lg text-slate-500">Daily Operations Dashboard</p>
+					<h1 class="text-3xl font-bold">KMRL Train Readiness</h1>
+					<p class="text-gray-500">Daily Operations Dashboard</p>
 				</div>
-				<GenerateButton on:click={generateRecommendation} />
 			</div>
+			<GenerateButton on:click={generateRecommendation} />
 		</div>
 
-		<KpiSection
-			readyTrainsCount={readyTrains.length}
-			onHoldTrainsCount={onHoldTrains.length}
-			excludedTrainsCount={excludedTrains.length}
-			{totalShuntingMoves}
-			{requiredServiceFleetSize}
-		/>
+		<!-- Tabs -->
+		<div class="mb-6 flex space-x-4">
+			<button
+				on:click={() => (currentTab = 'dashboard')}
+				class="rounded-lg px-4 py-2 text-sm font-medium transition-colors duration-200
+					{currentTab === 'dashboard'
+					? 'bg-indigo-600 text-white shadow'
+					: 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-100'}"
+			>
+				Dashboard
+			</button>
+		</div>
 
-		<div class="mt-8">
-			<div class="mb-4 flex items-center justify-between">
+		<!-- Panels -->
+		{#if currentTab === 'dashboard'}
+			<KpiSection trains={csvData} {requiredServiceFleetSize} />
+
+			<!-- Controls -->
+			<div class="mt-8 flex items-center justify-between space-x-4">
 				<input
 					type="text"
 					bind:value={filterText}
 					placeholder="Search by Train ID..."
-					class="w-full max-w-xs rounded-lg border border-slate-300 p-2"
+					class="w-full max-w-xs rounded-lg border border-gray-300 bg-white p-2 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200"
 				/>
-				<button
-					on:click={exportToCsv}
-					class="rounded-lg bg-slate-700 px-4 py-2 text-sm font-semibold text-white shadow-md hover:bg-slate-800"
-				>
-					Export to CSV
-				</button>
+
+				<div class="flex items-center space-x-2">
+					<FileUpload
+						onUpload={(file) => {
+							uploadedFile = file;
+							handleCsvUpload();
+						}}
+					/>
+				</div>
 			</div>
-			<div class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-				<table class="w-full text-left">
-					<thead class="border-b border-gray-200 bg-gray-50">
-						<tr class="text-sm text-gray-600 uppercase">
-							<th class="p-4">Status</th>
-							<th class="cursor-pointer p-4 hover:bg-gray-200" on:click={() => sortBy('train_id')}>
-								Train ID {#if sortKey === 'train_id'}{sortDirection === 'asc' ? '▲' : '▼'}{/if}
-							</th>
-							<th class="p-4">Reason for Status</th>
-							<th
-								class="cursor-pointer p-4 text-center hover:bg-gray-200"
-								on:click={() => sortBy('readiness_probability')}
-							>
-								Readiness % {#if sortKey === 'readiness_probability'}{sortDirection === 'asc'
-										? '▲'
-										: '▼'}{/if}
-							</th>
-							<th
-								class="cursor-pointer p-4 text-center hover:bg-gray-200"
-								on:click={() => sortBy('odometer_total_km')}
-							>
-								Mileage {#if sortKey === 'odometer_total_km'}{sortDirection === 'asc'
-										? '▲'
-										: '▼'}{/if}
-							</th>
-							<th
-								class="cursor-pointer p-4 text-center hover:bg-gray-200"
-								on:click={() => sortBy('shunting_moves_needed')}
-							>
-								Shunting Moves {#if sortKey === 'shunting_moves_needed'}{sortDirection === 'asc'
-										? '▲'
-										: '▼'}{/if}
-							</th>
-							<th class="p-4">Actions</th>
-						</tr>
-					</thead>
-					<tbody>
-						{#each displayedTrains as train (train.train_id)}
-							<TrainRow {train} onViewDetails={openModal} />
-						{/each}
-					</tbody>
-				</table>
+
+			<!-- Train Table -->
+			{#if csvData.length > 0}
+				<div class="mt-6 overflow-x-auto rounded-xl border border-gray-200 bg-white shadow">
+					<table class="w-full text-left">
+						<thead
+							class="border-b border-gray-200 bg-gray-50 text-xs font-semibold text-gray-600 uppercase"
+						>
+							<tr>
+								{#each mainHeaders as h}
+									<th class="p-3">{h}</th>
+								{/each}
+								<th class="p-3">Actions</th>
+							</tr>
+						</thead>
+						<tbody class="divide-y divide-gray-100">
+							{#each displayedTrains as row, i}
+								<tr class="hover:bg-gray-50">
+									{#each mainHeaders as h}
+										<td class="p-2">
+											<!-- Inputs look lighter, cleaner -->
+											{#if h === 'Status'}
+												<select
+													class="w-full rounded border border-gray-300 bg-white p-1 text-sm"
+													bind:value={row[h]}
+													on:change={(e) => updateCell(i, h, (e.target as HTMLSelectElement).value)}
+												>
+													<option value="On Hold">On Hold</option>
+													<option value="Ready">Ready</option>
+													<option value="Excluded">Excluded</option>
+												</select>
+											{:else if h === 'Recommendation'}
+												<select
+													class="w-full rounded border border-gray-300 bg-white p-1 text-sm"
+													bind:value={row[h]}
+													on:change={(e) => updateCell(i, h, (e.target as HTMLSelectElement).value)}
+												>
+													<option value="Ready for service">Ready for service</option>
+													<option value="Schedule maintenance soon"
+														>Schedule maintenance soon</option
+													>
+													<option value="Hold for immediate inspection"
+														>Hold for immediate inspection</option
+													>
+												</select>
+											{:else if h === 'Readiness %'}
+												<span class="text-gray-800">{row[h]}</span>
+											{:else}
+												<input
+													class="w-full rounded border border-gray-300 bg-white p-1 text-sm"
+													type="text"
+													bind:value={row[h]}
+													on:input={(e) => updateCell(i, h, (e.target as HTMLInputElement).value)}
+												/>
+											{/if}
+										</td>
+									{/each}
+									<td class="p-2">
+										<button
+											on:click={() => openModal(row)}
+											class="text-sm font-medium text-indigo-600 hover:underline"
+										>
+											View Details
+										</button>
+									</td>
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+				</div>
+			{/if}
+		{:else if currentTab === 'logs'}
+			<div class="rounded-xl border border-gray-200 bg-white p-4 shadow">
+				<AuditLog {logEntries} />
 			</div>
-		</div>
+		{:else if currentTab === 'hints'}
+			<div class="rounded-xl border border-gray-200 bg-white p-4 shadow">
+				<p class="text-gray-600">Hints will be displayed here.</p>
+			</div>
+		{/if}
 	</main>
 
+	<!-- Audit Log Sidebar -->
 	<aside
-		class="fixed top-0 right-0 h-full w-96 transform bg-slate-800 text-white shadow-2xl transition-transform duration-300 ease-in-out"
+		class="fixed top-0 right-0 h-full w-96 transform bg-white text-gray-900 shadow-2xl transition-transform duration-300 ease-in-out"
 		class:translate-x-0={showAuditLog}
 		class:translate-x-full={!showAuditLog}
 	>
@@ -259,55 +303,25 @@
 		</div>
 	</aside>
 
+	<!-- Toggle Audit Log Button -->
 	<button
 		on:click={() => (showAuditLog = !showAuditLog)}
-		class="fixed top-4 right-4 z-10 h-12 w-12 rounded-full bg-slate-800 text-white shadow-lg transition-all duration-300 ease-in-out hover:bg-slate-700"
+		class="fixed top-4 right-4 z-10 h-12 w-12 rounded-full bg-indigo-600 text-white shadow hover:bg-indigo-500"
 		class:lg:right-[25rem]={showAuditLog}
 		class:right-4={!showAuditLog}
-		title="Toggle Audit Log"
 	>
 		{#if !showAuditLog}
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				class="mx-auto h-6 w-6"
-				fill="none"
-				viewBox="0 0 24 24"
-				stroke="currentColor"
-				><path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M4 6h16M4 12h16M4 18h7"
-				/></svg
-			>
+			☰
 		{:else}
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				class="mx-auto h-6 w-6"
-				fill="none"
-				viewBox="0 0 24 24"
-				stroke="currentColor"
-				><path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M6 18L18 6M6 6l12 12"
-				/></svg
-			>
+			✕
 		{/if}
 	</button>
 </div>
 
+<!-- Modals -->
 {#if selectedTrain}
-	<DetailsModal
-		train={selectedTrain}
-		on:close={closeModal}
-		on:induct={(e) => handleOverride(selectedTrain!.train_id, 'Induct', e.detail.reason)}
-		on:hold={(e) => handleOverride(selectedTrain!.train_id, 'Hold', e.detail.reason)}
-		on:preview={(e) => runPreview(selectedTrain!.train_id, e.detail)}
-	/>
+	<DetailsModal train={selectedTrain} on:close={closeModal} />
 {/if}
-
 {#if recommendationResult}
 	<RecommendationModal
 		recommendedTrains={recommendationResult}

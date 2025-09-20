@@ -121,39 +121,6 @@
 						{/each}
 					</div>
 				</div>
-
-				<footer class="border-t bg-gray-50 p-4">
-					<div class="rounded-lg border border-blue-200 bg-blue-50 p-4">
-						<h3 class="font-bold text-blue-800">What-If Analysis & Manual Override</h3>
-						<p class="mt-1 text-sm text-blue-700">
-							Manually override the AI's recommendation. You will be asked to provide a reason.
-						</p>
-						<div class="mt-4 flex gap-4">
-							<button
-								on:click={() => (step = 'reason_induct')}
-								class="flex-1 rounded-lg bg-green-600 px-4 py-2 font-bold text-white hover:bg-green-700"
-								>Force Induct</button
-							>
-							<button
-								on:click={() => (step = 'reason_hold')}
-								class="flex-1 rounded-lg bg-red-600 px-4 py-2 font-bold text-white hover:bg-red-700"
-								>Force Hold</button
-							>
-						</div>
-					</div>
-				</footer>
-			</div>
-		{/if}
-
-		{#if step === 'reason_hold' || step === 'reason_induct'}
-			<div in:slide={{ duration: 300 }}>
-				<header class="border-b p-4">
-					<h2 class="text-xl font-bold">
-						{#if step === 'reason_hold'}Reason for Holding Train{/if}
-						{#if step === 'reason_induct'}Reason for Inducting Train{/if}
-					</h2>
-					<p class="text-sm text-gray-500">Select all that apply.</p>
-				</header>
 			</div>
 		{/if}
 	</div>

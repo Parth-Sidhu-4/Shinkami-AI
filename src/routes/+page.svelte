@@ -5,7 +5,11 @@
 	import { onMount } from 'svelte';
 	import Reveal from '$lib/components/Reveal.svelte';
 
-	let user: any = null;
+	// State for mobile menu
+	let isMenuOpen = false;
+
+	// Initial user state is undefined for loading
+	let user: any;
 
 	onMount(() => {
 		onAuthStateChanged(auth, (u) => {
@@ -18,7 +22,6 @@
 		goto('/');
 	}
 
-	// --- No changes to your data, it's well-structured ---
 	const team = [
 		{
 			name: 'Parth Sidhu',
@@ -149,6 +152,8 @@
 				src="https://i.ibb.co/qhXCRy8/Gemini-Generated-Image-4aph8l4aph8l4aph.png"
 				alt="Shinkami AI Logo"
 				class="h-12 w-12 rounded-lg"
+				width="48"
+				height="48"
 			/>
 			<span
 				class="bg-gradient-to-r from-[#156B7D] via-[#56A8A5] to-[#82C24B] bg-clip-text text-2xl font-black tracking-tighter text-transparent"
@@ -158,21 +163,24 @@
 			</span>
 		</a>
 
-		<div class="flex items-center space-x-2 md:space-x-4">
+		<div class="hidden items-center space-x-2 sm:flex md:space-x-4">
 			<a
 				href="#why"
-				class="hidden rounded-lg px-3 py-2 font-medium text-slate-600 transition-colors duration-300 hover:text-[#156B7D] sm:block"
+				class="rounded-lg px-3 py-2 font-medium text-slate-600 transition-colors duration-300 hover:text-[#156B7D]"
 			>
 				Why Shinkami?
 			</a>
 			<a
 				href="#team"
-				class="hidden rounded-lg px-3 py-2 font-medium text-slate-600 transition-colors duration-300 hover:text-[#156B7D] sm:block"
+				class="rounded-lg px-3 py-2 font-medium text-slate-600 transition-colors duration-300 hover:text-[#156B7D]"
 			>
 				Team
 			</a>
 
-			{#if user}
+			{#if user === undefined}
+				<div class="h-9 w-28 animate-pulse rounded-lg bg-slate-200"></div>
+				<div class="h-9 w-20 animate-pulse rounded-lg bg-slate-200"></div>
+			{:else if user}
 				<a
 					href="/dashboard"
 					class="rounded-lg bg-[#156B7D] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all duration-300 hover:scale-105 hover:bg-[#82C24B]"
@@ -188,17 +196,98 @@
 			{:else}
 				<a
 					href="/login"
-					class="rounded-lg bg-[#156B7D] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all duration-300 hover:scale-105 hover:bg-[#82C24B]"
+					class="rounded-lg px-4 py-2 text-sm font-semibold text-[#156B7D] ring-1 ring-[#156B7D] transition-colors duration-300 ring-inset hover:bg-[#156B7D] hover:text-white"
 				>
 					Get Started
 				</a>
 			{/if}
 		</div>
+
+		<div class="sm:hidden">
+			<button
+				on:click={() => (isMenuOpen = !isMenuOpen)}
+				class="rounded-md p-2 text-slate-600 hover:bg-slate-100 hover:text-[#156B7D] focus:ring-2 focus:ring-[#156B7D] focus:outline-none focus:ring-inset"
+				aria-label="Open main menu"
+			>
+				{#if isMenuOpen}
+					<svg
+						class="h-6 w-6"
+						xmlns="http://www.w3.org/2000/svg"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke="currentColor"
+						><path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M6 18L18 6M6 6l12 12"
+						/></svg
+					>
+				{:else}
+					<svg
+						class="h-6 w-6"
+						xmlns="http://www.w3.org/2000/svg"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke="currentColor"
+						><path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M4 6h16M4 12h16M4 18h16"
+						/></svg
+					>
+				{/if}
+			</button>
+		</div>
 	</nav>
 
-	<section class="relative overflow-hidden bg-slate-900 px-6 py-24 text-white sm:px-10 md:px-20">
+	{#if isMenuOpen}
+		<div class="sm:hidden">
+			<div class="space-y-1 px-2 pt-2 pb-3">
+				<a
+					href="#why"
+					on:click={() => (isMenuOpen = false)}
+					class="block rounded-md px-3 py-2 text-base font-medium text-slate-600 hover:bg-slate-100 hover:text-[#156B7D]"
+					>Why Shinkami?</a
+				>
+				<a
+					href="#team"
+					on:click={() => (isMenuOpen = false)}
+					class="block rounded-md px-3 py-2 text-base font-medium text-slate-600 hover:bg-slate-100 hover:text-[#156B7D]"
+					>Team</a
+				>
+				<div class="border-t border-slate-200 pt-4">
+					{#if user === undefined}
+						<div class="mx-3 h-10 w-auto animate-pulse rounded-lg bg-slate-200"></div>
+					{:else if user}
+						<a
+							href="/dashboard"
+							class="block w-full rounded-lg bg-[#156B7D] px-4 py-2 text-left text-sm font-semibold text-white shadow-sm"
+							>Dashboard</a
+						>
+						<button
+							on:click={handleLogout}
+							class="mt-2 block w-full rounded-lg px-4 py-2 text-left text-sm font-semibold text-[#156B7D] ring-1 ring-[#156B7D] ring-inset"
+							>Logout</button
+						>
+					{:else}
+						<a
+							href="/login"
+							class="block w-full rounded-lg bg-[#156B7D] px-4 py-2 text-left text-sm font-semibold text-white shadow-sm"
+							>Get Started</a
+						>
+					{/if}
+				</div>
+			</div>
+		</div>
+	{/if}
+
+	<section
+		class="animated-gradient-bg relative overflow-hidden px-6 py-24 text-white sm:px-10 md:px-20"
+	>
 		<div
-			class="absolute inset-0 bg-[url('/grid.svg')] [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] bg-center"
+			class="absolute inset-0 bg-[url('/grid.svg')] [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] bg-center opacity-30"
 		></div>
 
 		<div
@@ -247,6 +336,8 @@
 						src="https://kochimetro.org/wp-content/uploads/2018/01/train.png"
 						alt="Kochi Metro Train"
 						class="relative w-full max-w-md rounded-xl shadow-2xl"
+						width="512"
+						height="325"
 					/>
 				</div>
 			</Reveal>
@@ -269,6 +360,8 @@
 						src="https://gsv.ac.in/wp-content/uploads/2024/11/cropped-logo_for_website-1-2.png"
 						alt="GSV Logo"
 						class="h-12 w-auto invert transition-transform duration-300 hover:scale-105"
+						width="150"
+						height="48"
 					/>
 				</a>
 			</div>
@@ -287,6 +380,8 @@
 						src="https://sih.gov.in/img1/SIH2025-logo.png"
 						alt="SIH Logo"
 						class="h-12 w-auto transition-transform duration-300 hover:scale-105"
+						width="196"
+						height="48"
 					/>
 				</a>
 			</div>
@@ -509,12 +604,14 @@
 				<Reveal>
 					<div class="group relative flex w-24 flex-col items-center gap-3 text-center">
 						<div
-							class="relative flex h-20 w-20 items-center justify-center rounded-2xl bg-slate-100 transition duration-300 group-hover:bg-white group-hover:shadow-lg"
+							class="relative flex h-20 w-20 items-center justify-center rounded-2xl bg-slate-100 transition duration-300 group-hover:-translate-y-1 group-hover:bg-white group-hover:shadow-lg"
 						>
 							<img
 								src={tech.logo}
 								alt={tech.name}
 								class="h-10 w-10 object-contain transition-transform duration-300 group-hover:scale-110"
+								width="40"
+								height="40"
 							/>
 						</div>
 						<p class="font-semibold text-slate-700">{tech.name}</p>
@@ -588,6 +685,8 @@
 							src={member.avatar}
 							alt={member.name}
 							class="mx-auto mb-4 h-24 w-24 rounded-full shadow-md transition-transform duration-300 group-hover:scale-105"
+							width="96"
+							height="96"
 						/>
 						<h3 class="text-lg font-semibold text-slate-900">{member.name}</h3>
 						<p class="text-[#156B7D]">{member.role}</p>
@@ -608,6 +707,8 @@
 						src={mentor.avatar}
 						alt={mentor.name}
 						class="mx-auto mb-4 h-28 w-28 rounded-full shadow-lg"
+						width="112"
+						height="112"
 					/>
 					<h4 class="text-xl font-bold text-slate-900">{mentor.name}</h4>
 					<p class="text-slate-600">{mentor.role}</p>
@@ -624,6 +725,8 @@
 						src={specialThanks.avatar}
 						alt={specialThanks.name}
 						class="mx-auto mb-4 h-28 w-28 rounded-full shadow-lg"
+						width="112"
+						height="112"
 					/>
 					<h4 class="text-xl font-bold text-slate-900">{specialThanks.name}</h4>
 					<p class="text-slate-600">{specialThanks.role}</p>
@@ -660,5 +763,24 @@
 	.pattern-bg {
 		background-image: radial-gradient(#d1e8e2 0.5px, transparent 0.5px);
 		background-size: 15px 15px;
+	}
+
+	/* Change: Animated Gradient Background */
+	.animated-gradient-bg {
+		background: linear-gradient(45deg, #0f172a, #156b7d, #1e3a8a, #0f172a);
+		background-size: 400% 400%;
+		animation: gradientAnimation 15s ease infinite;
+	}
+
+	@keyframes gradientAnimation {
+		0% {
+			background-position: 0% 50%;
+		}
+		50% {
+			background-position: 100% 50%;
+		}
+		100% {
+			background-position: 0% 50%;
+		}
 	}
 </style>

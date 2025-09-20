@@ -189,32 +189,34 @@
 </script>
 
 <nav
-	class="sticky top-0 z-50 flex items-center justify-between bg-white/95 px-8 py-4 shadow-md backdrop-blur-md"
+	class="sticky top-0 z-30 flex items-center justify-between bg-white/80 px-4 py-3 shadow-sm backdrop-blur-lg transition-all duration-300 md:px-8"
+	class:lg:mr-96={showAuditLog}
 >
-	<!-- Logo -->
-	<div class="flex items-center space-x-3">
+	<a href="/" class="flex items-center space-x-3">
 		<img
 			src="https://i.ibb.co/qhXCRy8/Gemini-Generated-Image-4aph8l4aph8l4aph.png"
 			alt="Shinkami AI Logo"
-			class="h-12 w-12 rounded-lg shadow-md"
+			class="h-12 w-12 rounded-lg"
 		/>
 		<span
-			class="bg-gradient-to-r from-[#156B7D] via-[#56A8A5] to-[#82C24B] bg-clip-text text-2xl font-extrabold tracking-wide text-transparent"
+			class="bg-gradient-to-r from-[#156B7D] via-[#56A8A5] to-[#82C24B] bg-clip-text text-2xl font-black tracking-tighter text-transparent"
 			style="font-family: 'Montserrat', sans-serif;"
 		>
 			Shinkami AI
 		</span>
-	</div>
+	</a>
 
-	<!-- Navigation Links -->
-	<div class="flex items-center space-x-4 font-medium">
-		<a href="/" class="rounded-lg px-3 py-2 transition hover:bg-[#156B7D]/10 hover:text-[#156B7D]">
+	<div class="flex items-center space-x-4">
+		<a
+			href="/"
+			class="hidden rounded-lg px-3 py-2 font-medium text-slate-600 transition-colors duration-300 hover:text-[#156B7D] sm:block"
+		>
 			Home
 		</a>
 
 		<button
 			on:click={handleLogout}
-			class="rounded-lg border border-[#156B7D] px-3 py-2 font-semibold text-[#156B7D] transition hover:bg-[#156B7D] hover:text-white"
+			class="rounded-lg px-4 py-2 text-sm font-semibold text-[#156B7D] ring-1 ring-[#156B7D] transition-colors duration-300 ring-inset hover:bg-[#156B7D] hover:text-white"
 		>
 			Logout
 		</button>
@@ -294,15 +296,18 @@
 							{#each displayedTrains as row, i}
 								<tr class="transition even:bg-gray-50 hover:bg-[#f0fdfa]">
 									{#each mainHeaders as h}
-										<td class="border p-2">
+										<td class="p-2">
 											{#if h === 'Status'}
 												<select
-													class="w-full rounded-lg px-2 py-1 text-sm font-medium text-white transition-colors duration-300"
-													class:bg-green-500={row[h] === 'Ready'}
-													class:bg-yellow-400={row[h] === 'On Hold'}
-													class:bg-red-500={row[h] === 'Excluded'}
+													class="w-full rounded-lg border-none px-2 py-1 text-sm font-semibold transition"
+													class:bg-emerald-100={row[h] === 'Ready'}
+													class:text-emerald-800={row[h] === 'Ready'}
+													class:bg-amber-100={row[h] === 'On Hold'}
+													class:text-amber-800={row[h] === 'On Hold'}
+													class:bg-rose-100={row[h] === 'Excluded'}
+													class:text-rose-800={row[h] === 'Excluded'}
 													bind:value={row[h]}
-													on:change={(e) => updateCell(i, h, (e.target as HTMLSelectElement).value)}
+													on:change={() => updateCell(i, h, row[h])}
 												>
 													<option value="Ready">Ready</option>
 													<option value="On Hold">On Hold</option>
@@ -310,9 +315,9 @@
 												</select>
 											{:else if h === 'Recommendation'}
 												<select
-													class="w-full rounded border border-gray-300 bg-white p-1 text-[#333]"
+													class="w-full rounded border border-gray-300 bg-white p-1 text-sm text-[#333]"
 													bind:value={row[h]}
-													on:change={(e) => updateCell(i, h, (e.target as HTMLSelectElement).value)}
+													on:change={() => updateCell(i, h, row[h])}
 												>
 													<option value="Ready for service">Ready for service</option>
 													<option value="Schedule maintenance soon"
@@ -322,37 +327,33 @@
 														>Hold for immediate inspection</option
 													>
 												</select>
-											{:else if h === 'Readiness %'}
-												<span class="text-[#333]">{row[h]}</span>
 											{:else if h === 'Odometer' || h === 'Shunting Moves'}
 												<input
 													class="w-full rounded border border-gray-300 bg-white p-1 text-sm"
 													type="number"
 													step={h === 'Odometer' ? '0.01' : '1'}
 													bind:value={row[h]}
-													on:input={(e) => updateCell(i, h, (e.target as HTMLInputElement).value)}
+													on:input={() => updateCell(i, h, row[h])}
 												/>
 											{:else}
-												<input
-													class="w-full rounded border border-gray-300 bg-white p-1 text-sm"
-													type="text"
-													bind:value={row[h]}
-													on:input={(e) => updateCell(i, h, (e.target as HTMLInputElement).value)}
-												/>
+												<span class="px-2 py-1 text-sm">{row[h]}</span>
 											{/if}
 										</td>
 									{/each}
 									<td class="p-2">
-										<button on:click={() => openModal(row)} class="text-[#156B7D] hover:underline"
-											>View Details</button
+										<button
+											on:click={() => openModal(row)}
+											class="font-semibold text-[#156B7D] hover:underline"
 										>
+											View Details
+										</button>
 									</td>
 								</tr>
 							{/each}
 						</tbody>
 					</table>
 					{#if displayedTrains.length === 0}
-						<p class="p-4 text-center text-gray-500">No trains found.</p>
+						<p class="p-4 text-center text-gray-500">No trains found matching your search.</p>
 					{/if}
 				</div>
 			{/if}
@@ -382,7 +383,54 @@
 
 <!-- Modals -->
 {#if selectedTrain}
-	<DetailsModal train={selectedTrain} on:close={closeModal} />
+	<div
+		class="fixed inset-0 z-40 flex items-center justify-center bg-black/60 p-4"
+		on:click={closeModal}
+	>
+		<div
+			class="flex h-full max-h-[90vh] w-full max-w-2xl flex-col rounded-lg bg-white shadow-xl"
+			on:click|stopPropagation
+		>
+			<div class="flex items-center justify-between border-b p-4">
+				<h3 class="text-xl font-bold text-slate-800">Edit Details: {selectedTrain['Train ID']}</h3>
+				<button
+					on:click={closeModal}
+					class="rounded-full p-1 text-2xl leading-none text-slate-500 hover:bg-slate-100"
+					>&times;</button
+				>
+			</div>
+
+			<div class="flex-1 overflow-y-auto p-6">
+				<div class="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
+					{#each Object.entries(selectedTrain._original) as [key, value]}
+						<div>
+							<label for={key} class="font-medium text-slate-500 capitalize"
+								>{key.replace(/_/g, ' ')}</label
+							>
+							<input
+								id={key}
+								type="text"
+								{value}
+								on:input={(e) => {
+									selectedTrain['_original'][key] = (e.target as HTMLInputElement).value;
+									isEdited = true;
+								}}
+								class="mt-1 w-full rounded-md border-slate-300 p-2 font-semibold text-slate-900 shadow-sm focus:border-teal-500 focus:ring-teal-500"
+							/>
+						</div>
+					{/each}
+				</div>
+			</div>
+
+			<div class="border-t bg-slate-50 p-4 text-right">
+				<button
+					on:click={closeModal}
+					class="rounded-md bg-slate-200 px-4 py-2 font-semibold text-slate-700 hover:bg-slate-300"
+					>Done</button
+				>
+			</div>
+		</div>
+	</div>
 {/if}
 
 {#if recommendationResult}

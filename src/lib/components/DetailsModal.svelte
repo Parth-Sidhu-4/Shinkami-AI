@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { createEventDispatcher, type EventDispatcher } from 'svelte';
+	import { slide } from 'svelte/transition';
 
 	type ModalEvents = {
 		close: null;
 		induct: { reason: string };
 		hold: { reason: string };
-		preview: 'Induct' | 'Hold';
 		update: { updatedTrain: Record<string, any> };
 	};
 
@@ -21,30 +21,17 @@
 	let otherReasonText = '';
 
 	function closeModal() {
-		step = 'details';
-		selectedReasons = [];
-		otherReasonText = '';
-		dispatch('update', { updatedTrain: train }); // send updated values
+		dispatch('update', { updatedTrain: train }); // Send back the updated train object
 		dispatch('close');
+		// Reset state after closing
+		setTimeout(() => {
+			step = 'details';
+			selectedReasons = [];
+			otherReasonText = '';
+		}, 200); // Delay to allow fade-out
 	}
 
-	function confirmOverride() {
-		let finalReason = selectedReasons.filter((r) => r !== 'Other').join(', ');
-		if (selectedReasons.includes('Other') && otherReasonText) {
-			if (finalReason) finalReason += '; ';
-			finalReason += `Other: ${otherReasonText}`;
-		}
-		if (!finalReason) finalReason = 'No reason provided.';
-
-		if (step === 'reason_hold') {
-			dispatch('hold', { reason: finalReason });
-		} else if (step === 'reason_induct') {
-			dispatch('induct', { reason: finalReason });
-		}
-		closeModal();
-	}
-
-	// Fields shown in main table
+	// --- Data processing for display ---
 	const mainHeaders = [
 		'Status',
 		'Train ID',
@@ -55,12 +42,12 @@
 	];
 	const excludedKeys = new Set(mainHeaders);
 
-	// Map CSV keys → UI labels
 	const detailFieldLabels: Record<string, string> = {
 		date: 'Date',
 		depot: 'Depot',
 		train_id: 'Train ID',
 		rake_status_current: 'Rake Status Current',
+		// ... (all your other labels remain the same)
 		fitness_rolling_stock_expiry: 'Fitness Rolling Stock Expiry',
 		fitness_signalling_expiry: 'Fitness Signalling Expiry',
 		fitness_telecom_expiry: 'Fitness Telecom Expiry',
@@ -99,151 +86,74 @@
 		final_score: 'Final Score'
 	};
 
-	// Build detail entries from the original CSV row
 	$: detailEntries = Object.entries(train._original || train)
 		.filter(([key]) => detailFieldLabels[key] && !excludedKeys.has(detailFieldLabels[key]))
-		.map(([key, value]) => [key, detailFieldLabels[key], value]);
+		.map(([key, value]) => ({ key, label: detailFieldLabels[key], value }));
 </script>
 
-<div
-	on:click={closeModal}
-	class="bg-opacity-60 fixed inset-0 z-40 flex items-center justify-center bg-black"
->
+<div on:click={closeModal} class="fixed inset-0 z-40 flex items-center justify-center bg-black/60">
 	<div
 		on:click|stopPropagation
 		class="z-50 flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl"
 	>
 		{#if step === 'details'}
-			<!-- Header -->
-			<div class="flex items-center justify-between border-b p-4">
-				<h2 class="text-xl font-bold">Train Details: {train['Train ID']}</h2>
-				<button on:click={closeModal} class="text-2xl text-gray-500 hover:text-gray-800">
-					&times;
-				</button>
-			</div>
+			<div in:slide={{ duration: 300 }}>
+				<header class="flex items-center justify-between border-b p-4">
+					<h2 class="text-xl font-bold">Train Details: {train['Train ID']}</h2>
+					<button on:click={closeModal} class="text-2xl text-gray-500 hover:text-gray-800"
+						>&times;</button
+					>
+				</header>
 
-			<!-- Scrollable content -->
-			<div class="flex-1 overflow-y-auto p-6">
-				<div class="grid grid-cols-2 gap-x-8 gap-y-4">
-					{#each detailEntries as [key, label, value]}
-						<div class="col-span-2">
-							<h3 class="text-sm font-semibold text-gray-500">{label}</h3>
-							<input
-								type="text"
-								bind:value={train._original[key]}
-								class="mt-1 w-full rounded-md border border-gray-300 p-2 text-sm"
-							/>
+				<div class="flex-1 overflow-y-auto p-6">
+					<div class="grid grid-cols-1 gap-x-8 gap-y-4 md:grid-cols-2">
+						{#each detailEntries as { key, label, value }}
+							<div>
+								<label for={key} class="text-sm font-semibold text-gray-500">{label}</label>
+								<input
+									id={key}
+									type="text"
+									value={train._original[key]}
+									on:input={(e) => (train._original[key] = (e.target as HTMLInputElement).value)}
+									class="mt-1 w-full rounded-md border border-gray-300 p-2 text-sm shadow-sm focus:border-teal-500 focus:ring-teal-500"
+								/>
+							</div>
+						{/each}
+					</div>
+				</div>
+
+				<footer class="border-t bg-gray-50 p-4">
+					<div class="rounded-lg border border-blue-200 bg-blue-50 p-4">
+						<h3 class="font-bold text-blue-800">What-If Analysis & Manual Override</h3>
+						<p class="mt-1 text-sm text-blue-700">
+							Manually override the AI's recommendation. You will be asked to provide a reason.
+						</p>
+						<div class="mt-4 flex gap-4">
+							<button
+								on:click={() => (step = 'reason_induct')}
+								class="flex-1 rounded-lg bg-green-600 px-4 py-2 font-bold text-white hover:bg-green-700"
+								>Force Induct</button
+							>
+							<button
+								on:click={() => (step = 'reason_hold')}
+								class="flex-1 rounded-lg bg-red-600 px-4 py-2 font-bold text-white hover:bg-red-700"
+								>Force Hold</button
+							>
 						</div>
-					{/each}
-				</div>
-
-				<!-- What-If Analysis -->
-				<div class="mt-6 border-t pt-6">
-					<h3 class="mb-3 text-sm font-semibold text-gray-500">What-If Analysis</h3>
-					<p class="mb-3 text-xs text-gray-500">
-						See how a manual override would impact the system's recommended lineup before committing
-						to the change.
-					</p>
-					<div class="flex space-x-4">
-						<button
-							on:click={() => dispatch('preview', 'Induct')}
-							class="w-full rounded-lg bg-gray-200 px-4 py-2 font-bold text-gray-800 hover:bg-gray-300"
-						>
-							Preview "Induct" Impact
-						</button>
-						<button
-							on:click={() => dispatch('preview', 'Hold')}
-							class="w-full rounded-lg bg-gray-200 px-4 py-2 font-bold text-gray-800 hover:bg-gray-300"
-						>
-							Preview "Hold" Impact
-						</button>
 					</div>
-				</div>
+				</footer>
 			</div>
+		{/if}
 
-			<!-- Footer -->
-			<div class="flex justify-end space-x-4 rounded-b-xl border-t bg-gray-50 p-4">
-				<button
-					on:click={() => (step = 'reason_hold')}
-					class="rounded-lg bg-red-100 px-4 py-2 font-bold text-red-700 hover:bg-red-200"
-				>
-					Force Hold
-				</button>
-				<button
-					on:click={() => (step = 'reason_induct')}
-					class="rounded-lg bg-green-100 px-4 py-2 font-bold text-green-700 hover:bg-green-200"
-				>
-					Force Induct
-				</button>
-			</div>
-		{:else}
-			<!-- Override reasons -->
-			<div class="flex items-center justify-between border-b p-4">
-				<h2 class="text-xl font-bold">Reason for Manual Override</h2>
-				<button on:click={closeModal} class="text-2xl text-gray-500 hover:text-gray-800">
-					&times;
-				</button>
-			</div>
-
-			<div class="flex-1 overflow-y-auto p-6">
-				<p class="mb-4 text-gray-600">
-					Please select a reason for forcing this train to
-					<strong>{step === 'reason_hold' ? 'Hold' : 'Induct'}</strong>.
-				</p>
-
-				<div class="space-y-3">
-					{#if step === 'reason_hold'}
-						{#each holdReasons as reason}
-							<label class="flex items-center">
-								<input
-									type="checkbox"
-									bind:group={selectedReasons}
-									value={reason}
-									class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-								/>
-								<span class="ml-3 text-gray-700">{reason}</span>
-							</label>
-						{/each}
-					{:else}
-						{#each inductReasons as reason}
-							<label class="flex items-center">
-								<input
-									type="checkbox"
-									bind:group={selectedReasons}
-									value={reason}
-									class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-								/>
-								<span class="ml-3 text-gray-700">{reason}</span>
-							</label>
-						{/each}
-					{/if}
-				</div>
-
-				{#if selectedReasons.includes('Other')}
-					<div class="mt-4">
-						<input
-							type="text"
-							bind:value={otherReasonText}
-							placeholder="Please specify other reason..."
-							class="mt-1 w-full rounded-md border border-gray-300 p-2"
-						/>
-					</div>
-				{/if}
-			</div>
-
-			<div class="flex items-center justify-between rounded-b-xl border-t bg-gray-50 p-4">
-				<button
-					on:click={() => (step = 'details')}
-					class="rounded-lg px-4 py-2 font-bold text-gray-600 hover:bg-gray-200"
-				>
-					Back
-				</button>
-				<button
-					on:click={confirmOverride}
-					class="rounded-lg bg-blue-600 px-4 py-2 font-bold text-white hover:bg-blue-700"
-				>
-					Confirm Override
-				</button>
+		{#if step === 'reason_hold' || step === 'reason_induct'}
+			<div in:slide={{ duration: 300 }}>
+				<header class="border-b p-4">
+					<h2 class="text-xl font-bold">
+						{#if step === 'reason_hold'}Reason for Holding Train{/if}
+						{#if step === 'reason_induct'}Reason for Inducting Train{/if}
+					</h2>
+					<p class="text-sm text-gray-500">Select all that apply.</p>
+				</header>
 			</div>
 		{/if}
 	</div>

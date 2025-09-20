@@ -18,6 +18,7 @@
 		goto('/');
 	}
 
+	// --- No changes to your data, it's well-structured ---
 	const team = [
 		{
 			name: 'Parth Sidhu',
@@ -29,11 +30,7 @@
 			role: 'Model Training',
 			avatar: 'https://i.ibb.co/fgmTxdS/Nikhil-Rathaur.jpg'
 		},
-		{
-			name: 'Suwarn',
-			role: 'Research',
-			avatar: 'https://i.ibb.co/VcNSkvqy/Suwarn.jpg'
-		},
+		{ name: 'Suwarn', role: 'Research', avatar: 'https://i.ibb.co/VcNSkvqy/Suwarn.jpg' },
 		{
 			name: 'Priya Gupta',
 			role: 'Research and Presentation',
@@ -44,13 +41,8 @@
 			role: 'Testing and Support',
 			avatar: 'https://i.ibb.co/Z1GWwPkk/Aryan-Vaish.jpg'
 		},
-		{
-			name: 'Sumit Kumar',
-			role: 'Support',
-			avatar: 'https://i.ibb.co/hxytXDq6/Sumit-Kumar.jpg'
-		}
+		{ name: 'Sumit Kumar', role: 'Support', avatar: 'https://i.ibb.co/hxytXDq6/Sumit-Kumar.jpg' }
 	];
-
 	const mentor = {
 		name: 'Dr. Anshika Srivastava',
 		role: 'Faculty Mentor',
@@ -78,6 +70,11 @@
 			desc: 'Python API framework for ML predictions.'
 		},
 		{
+			name: 'ngrok',
+			logo: 'https://images.icon-icons.com/3913/PNG/512/ngrok_logo_icon_248373.png',
+			desc: 'Securely exposes the local API to the web.'
+		},
+		{
 			name: 'Scikit-learn',
 			logo: 'https://upload.wikimedia.org/wikipedia/commons/0/05/Scikit_learn_logo_small.svg',
 			desc: 'Machine learning library for model training.'
@@ -93,7 +90,6 @@
 			desc: 'Frontend deployment & hosting.'
 		}
 	];
-
 	const workflow = [
 		{
 			icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-[#156B7D]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v4h16v-4M4 12l8-8 8 8" /></svg>`,
@@ -120,320 +116,549 @@
 			desc: 'Interactive UI displays insights to planners.'
 		}
 	];
-
 	const methodology = [
-		{ title: 'Dataset', desc: 'CSV data from daily operations.' },
-		{ title: 'Preprocessing', desc: 'Encoding, scaling, missing values handled.' },
-		{ title: 'Model Training', desc: 'Gradient Boosting model training.' },
-		{ title: 'API', desc: 'FastAPI serves ML predictions.' },
-		{ title: 'Dashboard', desc: 'Visualization & decision support.' }
+		{
+			title: 'Dataset Collection',
+			desc: 'Operational data is gathered in a standardized CSV format for processing.'
+		},
+		{
+			title: 'Data Preprocessing',
+			desc: 'Data is cleaned, and features are engineered, encoded, and scaled for the model.'
+		},
+		{
+			title: 'Model Training',
+			desc: 'A Gradient Boosting Regressor is trained on historical data to learn patterns.'
+		},
+		{
+			title: 'API Deployment',
+			desc: 'The trained model is served via a high-performance FastAPI backend for real-time predictions.'
+		},
+		{
+			title: 'Dashboard Integration',
+			desc: 'The frontend visualizes predictions, enabling planners to make informed decisions.'
+		}
 	];
 </script>
 
-<div class="flex min-h-screen flex-col bg-white text-[#333333]">
-	<!-- Navbar -->
+<div class="flex min-h-screen flex-col bg-gray-50 text-slate-800">
 	<nav
-		class="sticky top-0 z-50 flex items-center justify-between bg-white/95 px-8 py-4 shadow-md backdrop-blur-md"
+		class="sticky top-0 z-50 flex items-center justify-between bg-white/80 px-4 py-3 shadow-sm backdrop-blur-lg md:px-8"
 	>
-		<!-- Logo -->
-		<div class="flex items-center space-x-3">
+		<a href="/" class="flex items-center space-x-3">
 			<img
 				src="https://i.ibb.co/qhXCRy8/Gemini-Generated-Image-4aph8l4aph8l4aph.png"
 				alt="Shinkami AI Logo"
-				class="h-12 w-12 rounded-lg shadow-md"
+				class="h-12 w-12 rounded-lg"
 			/>
 			<span
-				class="bg-gradient-to-r from-[#156B7D] via-[#56A8A5] to-[#82C24B] bg-clip-text text-2xl font-extrabold tracking-wide text-transparent"
+				class="bg-gradient-to-r from-[#156B7D] via-[#56A8A5] to-[#82C24B] bg-clip-text text-2xl font-black tracking-tighter text-transparent"
 				style="font-family: 'Montserrat', sans-serif;"
 			>
 				Shinkami AI
 			</span>
-		</div>
+		</a>
 
-		<!-- Navigation Links -->
-		<div class="flex items-center space-x-4 font-medium">
+		<div class="flex items-center space-x-2 md:space-x-4">
 			<a
-				href="/"
-				class="rounded-lg px-3 py-2 transition hover:bg-[#156B7D]/10 hover:text-[#156B7D]"
+				href="#why"
+				class="hidden rounded-lg px-3 py-2 font-medium text-slate-600 transition-colors duration-300 hover:text-[#156B7D] sm:block"
 			>
-				Home
+				Why Shinkami?
+			</a>
+			<a
+				href="#team"
+				class="hidden rounded-lg px-3 py-2 font-medium text-slate-600 transition-colors duration-300 hover:text-[#156B7D] sm:block"
+			>
+				Team
 			</a>
 
 			{#if user}
 				<a
 					href="/dashboard"
-					class="rounded-lg bg-[#156B7D] px-3 py-2 font-semibold text-white shadow transition hover:bg-[#82C24B]"
+					class="rounded-lg bg-[#156B7D] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all duration-300 hover:scale-105 hover:bg-[#82C24B]"
 				>
 					Dashboard
 				</a>
 				<button
 					on:click={handleLogout}
-					class="rounded-lg border border-[#156B7D] px-3 py-2 font-semibold text-[#156B7D] transition hover:bg-[#156B7D] hover:text-white"
+					class="rounded-lg px-4 py-2 text-sm font-semibold text-[#156B7D] ring-1 ring-[#156B7D] transition-colors duration-300 ring-inset hover:bg-[#156B7D] hover:text-white"
 				>
 					Logout
 				</button>
 			{:else}
 				<a
 					href="/login"
-					class="rounded-lg bg-[#156B7D] px-3 py-2 font-semibold text-white shadow transition hover:bg-[#82C24B]"
+					class="rounded-lg bg-[#156B7D] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all duration-300 hover:scale-105 hover:bg-[#82C24B]"
 				>
-					Login
+					Get Started
 				</a>
 			{/if}
 		</div>
 	</nav>
 
-	<!-- Hero Section with Logos -->
-	<section
-		class="relative flex flex-1 flex-col items-center justify-between bg-gradient-to-br from-[#0f172a] via-[#156B7D] to-[#82C24B] px-10 py-20 text-white md:flex-row md:px-20"
-	>
-		<Reveal>
-			<div class="max-w-lg space-y-6 text-center md:text-left">
-				<h1 class="text-5xl leading-tight font-extrabold tracking-tight">
-					Smarter <span class="text-[#82C24B]">Train Readiness</span><br />with
-					<span class="text-[#56A8A5]">AI</span>
-				</h1>
-				<div
-					class="inline-block rounded-full bg-[#82C24B]/20 px-4 py-2 text-sm font-semibold text-[#82C24B] shadow"
-				>
-					🚀 Smart India Hackathon 2025
-				</div>
-				<p class="text-lg text-gray-200">
-					Shinkami AI helps Kochi Metro Rail Limited ensure daily train availability by predicting
-					readiness, recommending maintenance, and optimizing operations with ML.
-				</p>
-				<div class="flex flex-wrap justify-center gap-4 md:justify-start">
-					<button
-						on:click={() => goto(user ? '/dashboard' : '/login')}
-						class="rounded-lg bg-[#82C24B] px-6 py-3 font-semibold text-white shadow-lg transition hover:bg-[#56A8A5]"
-					>
-						{user ? 'Go to Dashboard' : 'Login'}
-					</button>
-					<a
-						href="#why"
-						class="rounded-lg border border-[#82C24B] px-6 py-3 font-semibold text-[#82C24B] transition hover:bg-[#82C24B]/10"
-						>Learn More</a
-					>
-				</div>
+	<section class="relative overflow-hidden bg-slate-900 px-6 py-24 text-white sm:px-10 md:px-20">
+		<div
+			class="absolute inset-0 bg-[url('/grid.svg')] [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] bg-center"
+		></div>
 
-				<!-- Logos Below CTA -->
-				<div class="mt-6 flex flex-col items-center gap-4 md:flex-row md:justify-center md:gap-12">
-					<!-- SIH Logo -->
-					<div class="flex flex-col items-center">
-						<img
-							src="https://sih.gov.in/img1/SIH2025-logo.png"
-							alt="SIH Logo"
-							class="h-12 w-auto"
-						/>
+		<div
+			class="relative z-10 mx-auto flex max-w-7xl flex-col items-center text-center md:flex-row md:justify-between md:text-left"
+		>
+			<Reveal class="md:w-6/12">
+				<div class="space-y-6">
+					<div
+						class="inline-block rounded-full border border-teal-500/50 bg-teal-500/10 px-4 py-1.5 text-sm font-semibold text-teal-300"
+					>
+						Smart India Hackathon 2025
 					</div>
-
-					<!-- Divider (optional) -->
-					<div class="hidden h-12 border-l border-gray-300 md:block"></div>
-
-					<!-- GSV Logo -->
-					<div class="flex flex-col items-center">
-						<img
-							src="https://gsv.ac.in/wp-content/uploads/2024/11/cropped-logo_for_website-1-2.png"
-							alt="GSV Logo"
-							class="h-12 w-auto"
-						/>
+					<h1 class="text-4xl font-extrabold tracking-tighter text-white sm:text-5xl md:text-6xl">
+						Smarter <span class="text-[#82C24B]">Train Readiness</span><br />with Predictive AI
+					</h1>
+					<p class="mx-auto max-w-xl text-lg text-slate-300 md:mx-0">
+						The Shinkansen from Japan is the global standard for railway precision. Our project, <strong
+							>Shinkami</strong
+						>, channels this spirit of excellence. Translating to 'divine intelligence' (神上), we
+						bring this elevated foresight to Kochi Metro, using predictive AI to attempt train
+						readiness with effortless certainty.
+					</p>
+					<div class="flex flex-wrap justify-center gap-4 md:justify-start">
+						<button
+							on:click={() => goto(user ? '/dashboard' : '/login')}
+							class="transform rounded-lg bg-[#82C24B] px-6 py-3 font-semibold text-slate-900 shadow-lg transition-transform duration-300 hover:scale-105"
+						>
+							{user ? 'Go to Dashboard' : 'Login & Explore'}
+						</button>
+						<a
+							href="#workflow"
+							class="rounded-lg px-6 py-3 font-semibold text-white ring-1 ring-slate-600 transition-colors duration-300 ring-inset hover:bg-slate-800"
+						>
+							See Workflow
+						</a>
 					</div>
 				</div>
-			</div>
-		</Reveal>
-		<Reveal>
-			<div class="mt-12 md:mt-0 md:ml-16">
-				<img
-					src="https://kochimetro.org/wp-content/uploads/2018/01/train.png"
-					alt="AI Train Dashboard Illustration"
-					class="w-[28rem] rounded-xl border border-white/10 shadow-2xl"
-				/>
-			</div>
-		</Reveal>
+			</Reveal>
+
+			<Reveal class="mt-12 md:mt-0 md:w-5/12">
+				<div class="group relative">
+					<div
+						class="absolute -inset-1 rounded-xl bg-gradient-to-r from-teal-500 to-green-500 opacity-20 blur-xl transition duration-500 group-hover:opacity-50"
+					></div>
+					<img
+						src="https://kochimetro.org/wp-content/uploads/2018/01/train.png"
+						alt="Kochi Metro Train"
+						class="relative w-full max-w-md rounded-xl shadow-2xl"
+					/>
+				</div>
+			</Reveal>
+		</div>
 	</section>
 
-	<!-- Why Shinkami AI Section -->
-	<section id="why" class="bg-white px-10 py-20 md:px-20">
-		<h2 class="mb-12 text-center text-3xl font-bold text-[#156B7D]">Why Shinkami AI?</h2>
-		<div class="mx-auto grid max-w-6xl gap-12 md:grid-cols-2">
-			<!-- Problem -->
-			<div class="space-y-4">
-				<h3 class="flex items-center gap-2 text-xl font-semibold text-[#156B7D]">
-					⚠️ The Challenge
-				</h3>
-				<p class="text-gray-700">
-					Every night, KMRL must decide which of its 25 trainsets enter service, which remain on
-					standby, and which go for maintenance. Current manual workflows rely on siloed
-					spreadsheets, logbooks, and WhatsApp updates, leading to:
-				</p>
-				<ul class="ml-6 list-disc space-y-1 text-gray-700">
-					<li>Missed clearances risk unscheduled rake withdrawals.</li>
-					<li>Uneven mileage accelerates wear & maintenance costs.</li>
-					<li>Poor visibility into branding priorities may breach SLAs.</li>
-					<li>Excessive night-time shunting increases energy use and safety risk.</li>
-				</ul>
+	<div class="bg-slate-100 py-12">
+		<div
+			class="mx-auto grid max-w-4xl grid-cols-1 gap-10 px-4 text-center md:grid-cols-2 md:items-center"
+		>
+			<div class="flex flex-col items-center">
+				<p class="mb-4 text-sm font-semibold tracking-wider text-slate-500 uppercase">Team From</p>
+				<a
+					href="https://gsv.ac.in/"
+					target="_blank"
+					rel="noopener noreferrer"
+					title="Gati Shakti Vishwavidyalaya"
+				>
+					<img
+						src="https://gsv.ac.in/wp-content/uploads/2024/11/cropped-logo_for_website-1-2.png"
+						alt="GSV Logo"
+						class="h-12 w-auto invert transition-transform duration-300 hover:scale-105"
+					/>
+				</a>
 			</div>
 
-			<!-- Solution -->
-			<div class="space-y-4">
-				<h3 class="flex items-center gap-2 text-xl font-semibold text-[#156B7D]">
-					✅ How Shinkami Helps
-				</h3>
-				<p class="text-gray-700">
-					Shinkami AI transforms this complex, error-prone process into a **data-driven, auditable,
-					and reproducible workflow**:
+			<div class="flex flex-col items-center md:border-l md:border-slate-300">
+				<p class="mb-4 text-sm font-semibold tracking-wider text-slate-500 uppercase">
+					Official Submission For
 				</p>
-				<ul class="ml-6 list-disc space-y-1 text-gray-700">
-					<li>Trained keeping real-world inconsistencies in mind</li>
-					<li>Applies rule-based constraints & multi-objective optimization.</li>
-					<li>Generates ranked induction lists with explainable reasoning and conflict alerts.</li>
-					<li>Learns from historical outcomes via machine-learning feedback loops.</li>
-				</ul>
-				<p class="mt-2 font-medium text-gray-700">
-					Result: Higher fleet availability, lower costs, and freed-up staff for strategic
-					decisions.
-				</p>
+				<a
+					href="https://sih.gov.in/"
+					target="_blank"
+					rel="noopener noreferrer"
+					title="Smart India Hackathon"
+				>
+					<img
+						src="https://sih.gov.in/img1/SIH2025-logo.png"
+						alt="SIH Logo"
+						class="h-12 w-auto transition-transform duration-300 hover:scale-105"
+					/>
+				</a>
+			</div>
+		</div>
+	</div>
+
+	<section id="why" class="bg-white px-6 py-24 sm:px-10 md:px-20">
+		<div class="mx-auto max-w-6xl">
+			<Reveal>
+				<div class="text-center">
+					<h2 class="text-3xl font-extrabold tracking-tighter text-[#156B7D] sm:text-4xl">
+						Why Shinkami AI?
+					</h2>
+					<p class="mx-auto mt-4 max-w-2xl text-lg text-slate-600">
+						Transforming daily operations from a manual puzzle into a data-driven strategy.
+					</p>
+				</div>
+			</Reveal>
+
+			<div class="mt-16 grid gap-12 md:grid-cols-2 md:gap-16">
+				<Reveal>
+					<div class="space-y-4">
+						<h3 class="flex items-center gap-3 text-2xl font-bold text-slate-800">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								class="h-8 w-8 text-amber-500"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+								><path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+								/></svg
+							>
+							The Challenge
+						</h3>
+						<p class="text-slate-600">
+							Current manual workflows rely on siloed spreadsheets and logbooks, leading to
+							operational inefficiencies and increased risks:
+						</p>
+						<ul class="space-y-2">
+							<li class="flex items-start gap-3">
+								<svg
+									class="mt-1 h-5 w-5 flex-shrink-0 text-red-500"
+									xmlns="http://www.w3.org/2000/svg"
+									viewBox="0 0 20 20"
+									fill="currentColor"
+									><path
+										fill-rule="evenodd"
+										d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
+										clip-rule="evenodd"
+									/></svg
+								>
+								<span
+									><strong>Service Risks:</strong> Missed clearances can cause unscheduled rake withdrawals.</span
+								>
+							</li>
+							<li class="flex items-start gap-3">
+								<svg
+									class="mt-1 h-5 w-5 flex-shrink-0 text-red-500"
+									xmlns="http://www.w3.org/2000/svg"
+									viewBox="0 0 20 20"
+									fill="currentColor"
+									><path
+										fill-rule="evenodd"
+										d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
+										clip-rule="evenodd"
+									/></svg
+								>
+								<span
+									><strong>Increased Costs:</strong> Uneven mileage distribution accelerates wear and
+									maintenance expenses.</span
+								>
+							</li>
+						</ul>
+					</div>
+				</Reveal>
+
+				<Reveal>
+					<div class="space-y-4">
+						<h3 class="flex items-center gap-3 text-2xl font-bold text-slate-800">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								class="h-8 w-8 text-teal-500"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+								><path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+								/></svg
+							>
+							Our Solution
+						</h3>
+						<p class="text-slate-600">
+							Shinkami AI provides a data-driven, auditable, and reproducible workflow with clear
+							benefits:
+						</p>
+						<ul class="space-y-2">
+							<li class="flex items-start gap-3">
+								<svg
+									class="mt-1 h-5 w-5 flex-shrink-0 text-green-500"
+									xmlns="http://www.w3.org/2000/svg"
+									viewBox="0 0 20 20"
+									fill="currentColor"
+									><path
+										fill-rule="evenodd"
+										d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
+										clip-rule="evenodd"
+									/></svg
+								>
+								<span
+									><strong>Predictive Power:</strong> Applies rule-based constraints & multi-objective
+									optimization.</span
+								>
+							</li>
+							<li class="flex items-start gap-3">
+								<svg
+									class="mt-1 h-5 w-5 flex-shrink-0 text-green-500"
+									xmlns="http://www.w3.org/2000/svg"
+									viewBox="0 0 20 20"
+									fill="currentColor"
+									><path
+										fill-rule="evenodd"
+										d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
+										clip-rule="evenodd"
+									/></svg
+								>
+								<span
+									><strong>Explainable AI:</strong> Generates ranked induction lists with clear reasoning
+									and conflict alerts.</span
+								>
+							</li>
+						</ul>
+						<p
+							class="mt-4 rounded-lg bg-teal-50 p-4 font-semibold text-teal-800 ring-1 ring-teal-200 ring-inset"
+						>
+							Result: Higher fleet availability, lower costs, and freed-up staff for strategic
+							decisions.
+						</p>
+					</div>
+				</Reveal>
 			</div>
 		</div>
 	</section>
 
-	<!-- Workflow Section -->
-	<section id="workflow" class="bg-gray-50 px-10 py-20 md:px-20">
-		<h2 class="mb-12 text-center text-3xl font-bold text-[#156B7D]">KMRL Dashboard Workflow</h2>
-		<div class="flex flex-col items-center md:flex-row md:justify-center md:space-x-12">
+	<section id="workflow" class="pattern-bg px-6 py-24 sm:px-10 md:px-20">
+		<Reveal>
+			<div class="text-center">
+				<h2 class="text-3xl font-extrabold tracking-tighter text-[#156B7D] sm:text-4xl">
+					Dashboard Workflow
+				</h2>
+				<p class="mx-auto mt-4 max-w-2xl text-lg text-slate-600">
+					A simple, four-step process from raw data to actionable insights.
+				</p>
+			</div>
+		</Reveal>
+		<div class="relative mx-auto mt-16 grid max-w-5xl gap-10 sm:grid-cols-2 md:grid-cols-4">
 			{#each workflow as wf, idx}
-				<Reveal>
-					<div class="group relative flex flex-col items-center text-center">
+				<div class="relative">
+					<Reveal>
 						<div
-							class="rounded-2xl bg-white p-6 shadow-lg ring-1 ring-gray-200 transition group-hover:-translate-y-1 group-hover:shadow-xl"
+							class="group relative flex flex-col items-center rounded-xl border border-slate-200 bg-white p-6 text-center shadow-lg transition duration-300 hover:-translate-y-2 hover:shadow-2xl"
 						>
-							{@html wf.icon}
-							<p class="mt-2 font-semibold">{wf.label}</p>
-							<p class="mt-1 text-xs text-gray-500">{wf.step}</p>
+							<div class="mb-4 rounded-full bg-teal-100 p-4 ring-8 ring-teal-50">
+								{@html wf.icon}
+							</div>
+							<p class="font-bold text-slate-800">{wf.label}</p>
+							<p class="text-sm font-semibold text-[#56A8A5]">{wf.step}</p>
+							<p class="mt-2 text-sm text-slate-500">{wf.desc}</p>
 						</div>
+					</Reveal>
+					{#if idx < workflow.length - 1}
 						<div
-							class="absolute top-full mt-2 hidden w-48 rounded-lg bg-black/80 px-3 py-2 text-xs text-white group-hover:block"
+							aria-hidden="true"
+							class="absolute top-1/2 -right-1/2 hidden w-1/2 translate-y-[-50%] lg:block"
 						>
-							{wf.desc}
-						</div>
-						{#if idx < workflow.length - 1}
 							<svg
-								class="absolute top-1/2 left-full hidden h-12 w-24 text-[#56A8A5] md:block"
+								class="h-auto w-full text-slate-300"
+								preserveAspectRatio="none"
+								viewBox="0 0 100 2"
 								fill="none"
-								stroke="currentColor"
-								stroke-width="2"
-								viewBox="0 0 100 50"
+								xmlns="http://www.w3.org/2000/svg"
 							>
-								<path d="M0,25 Q50,-25 100,25" />
+								<path
+									stroke-dasharray="4 4"
+									stroke-linecap="round"
+									d="M0 1H100"
+									stroke="currentColor"
+									stroke-width="2"
+								/>
 							</svg>
-						{/if}
-					</div>
-				</Reveal>
+						</div>
+					{/if}
+				</div>
 			{/each}
 		</div>
 	</section>
 
-	<!-- Technologies Section -->
-	<section id="tech" class="bg-white px-10 py-20 md:px-20">
-		<h2 class="mb-12 text-center text-3xl font-bold text-[#156B7D]">Technologies Used</h2>
-		<div class="grid grid-cols-2 gap-8 text-center sm:grid-cols-3 md:grid-cols-6">
+	<section id="tech" class="bg-white px-6 py-24 sm:px-10 md:px-20">
+		<Reveal>
+			<div class="text-center">
+				<h2 class="text-3xl font-extrabold tracking-tighter text-[#156B7D] sm:text-4xl">
+					Technology Stack
+				</h2>
+				<p class="mx-auto mt-4 max-w-2xl text-lg text-slate-600">
+					Built with modern, powerful, and scalable technologies.
+				</p>
+			</div>
+		</Reveal>
+
+		<div
+			class="mx-auto mt-16 flex max-w-5xl flex-wrap items-center justify-center gap-x-8 gap-y-12"
+		>
 			{#each technologies as tech}
 				<Reveal>
-					<div
-						class="group relative flex flex-col items-center rounded-xl bg-gray-50 p-4 shadow transition hover:shadow-lg"
-					>
-						<img src={tech.logo} alt={tech.name} class="h-12 w-12 object-contain" />
-						<p class="mt-3 text-sm font-medium">{tech.name}</p>
+					<div class="group relative flex w-24 flex-col items-center gap-3 text-center">
 						<div
-							class="absolute top-full mt-2 hidden w-48 rounded-lg bg-black/80 px-3 py-2 text-xs text-white group-hover:block"
+							class="relative flex h-20 w-20 items-center justify-center rounded-2xl bg-slate-100 transition duration-300 group-hover:bg-white group-hover:shadow-lg"
+						>
+							<img
+								src={tech.logo}
+								alt={tech.name}
+								class="h-10 w-10 object-contain transition-transform duration-300 group-hover:scale-110"
+							/>
+						</div>
+						<p class="font-semibold text-slate-700">{tech.name}</p>
+
+						<div
+							class="invisible absolute bottom-full mb-3 w-48 scale-95 transform rounded-md bg-slate-800 px-3 py-2 text-center text-xs font-semibold text-white opacity-0 transition-all duration-300 group-hover:visible group-hover:scale-100 group-hover:opacity-100"
 						>
 							{tech.desc}
+							<div
+								class="absolute -bottom-1 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45 bg-slate-800"
+							></div>
 						</div>
 					</div>
 				</Reveal>
 			{/each}
 		</div>
 	</section>
+	<section id="methodology" class="pattern-bg px-6 py-24 sm:px-10 md:px-20">
+		<Reveal>
+			<div class="text-center">
+				<h2 class="text-3xl font-extrabold tracking-tighter text-[#156B7D] sm:text-4xl">
+					Our Methodology
+				</h2>
+				<p class="mx-auto mt-4 max-w-2xl text-lg text-slate-600">
+					A structured approach to ensure accuracy and reliability from start to finish.
+				</p>
+			</div>
+		</Reveal>
 
-	<!-- Methodology Section -->
-	<section id="methodology" class="bg-gray-50 px-10 py-20 md:px-20">
-		<h2 class="mb-12 text-center text-3xl font-bold text-[#156B7D]">Methodology</h2>
-		<div class="grid gap-8 text-center md:grid-cols-5">
-			{#each methodology as step}
-				<Reveal>
-					<div class="group relative rounded-lg bg-white p-4 shadow-sm transition hover:shadow-md">
-						<h4 class="font-semibold text-[#156B7D]">{step.title}</h4>
-						<p class="text-sm text-gray-600">{step.desc}</p>
-						<div
-							class="absolute top-full mt-2 hidden w-48 rounded-lg bg-black/80 px-3 py-2 text-xs text-white group-hover:block"
-						>
-							{step.desc}
+		<div class="relative mx-auto mt-16 max-w-3xl">
+			<div class="absolute top-4 left-4 h-full w-0.5 bg-slate-200" aria-hidden="true"></div>
+			<div class="space-y-12">
+				{#each methodology as step, idx}
+					<Reveal>
+						<div class="relative flex items-start gap-6">
+							<div
+								class="z-10 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#156B7D] font-bold text-white"
+							>
+								{idx + 1}
+							</div>
+							<div class="flex-1">
+								<h4 class="text-lg font-bold text-slate-800">{step.title}</h4>
+								<p class="mt-1 text-slate-600">{step.desc}</p>
+							</div>
 						</div>
-					</div>
-				</Reveal>
-			{/each}
+					</Reveal>
+				{/each}
+			</div>
 		</div>
 	</section>
 
-	<!-- Team Section with Mentor & Special Thanks side by side -->
-	<section id="team" class="bg-gray-50 px-10 py-20 md:px-20">
-		<h2 class="mb-10 text-center text-3xl font-bold text-[#156B7D]">Our Team</h2>
+	<section id="team" class="bg-white px-6 py-24 sm:px-10 md:px-20">
+		<Reveal>
+			<div class="text-center">
+				<h2 class="text-3xl font-extrabold tracking-tighter text-[#156B7D] sm:text-4xl">
+					Our Team & Mentors
+				</h2>
+				<p class="mx-auto mt-4 max-w-2xl text-lg text-slate-600">
+					The minds behind the project, guided by incredible faculty.
+				</p>
+			</div>
+		</Reveal>
 
-		<!-- Team Members -->
-		<div class="grid gap-10 text-center sm:grid-cols-2 md:grid-cols-3">
+		<div class="mx-auto mt-16 grid max-w-6xl gap-8 sm:grid-cols-2 md:grid-cols-3">
 			{#each team as member}
 				<Reveal>
 					<div
-						class="transform rounded-xl bg-white p-6 shadow transition hover:-translate-y-1 hover:shadow-xl"
+						class="group rounded-xl bg-white p-6 text-center shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl"
 					>
 						<img
 							src={member.avatar}
 							alt={member.name}
-							class="mx-auto mb-4 w-24 rounded-full shadow"
+							class="mx-auto mb-4 h-24 w-24 rounded-full shadow-md transition-transform duration-300 group-hover:scale-105"
 						/>
-						<h3 class="mb-1 text-lg font-semibold text-[#156B7D]">{member.name}</h3>
-						<p class="text-sm text-gray-600">{member.role}</p>
+						<h3 class="text-lg font-semibold text-slate-900">{member.name}</h3>
+						<p class="text-[#156B7D]">{member.role}</p>
 					</div>
 				</Reveal>
 			{/each}
 		</div>
 
-		<!-- Mentor & Special Thanks in one row -->
-		<Reveal>
-			<div class="mt-12 flex flex-col items-center justify-center gap-10 md:flex-row">
-				<!-- Mentor Card -->
+		<div class="mt-20 grid gap-10 md:grid-cols-2 md:gap-16">
+			<Reveal>
 				<div
-					class="w-full max-w-xs rounded-xl border border-[#56A8A5]/30 bg-white p-6 text-center shadow-lg"
+					class="flex flex-col items-center rounded-xl bg-slate-50 p-8 text-center ring-1 ring-slate-200"
 				>
-					<h3 class="mb-6 text-2xl font-bold text-[#156B7D]">Mentor</h3>
+					<h3 class="mb-4 text-sm font-bold tracking-widest text-slate-500 uppercase">
+						Faculty Mentor
+					</h3>
 					<img
 						src={mentor.avatar}
 						alt={mentor.name}
-						class="mx-auto mb-4 w-28 rounded-full shadow"
+						class="mx-auto mb-4 h-28 w-28 rounded-full shadow-lg"
 					/>
-					<h4 class="mb-1 text-lg font-semibold text-[#156B7D]">{mentor.name}</h4>
-					<p class="text-sm text-gray-600">{mentor.role}</p>
+					<h4 class="text-xl font-bold text-slate-900">{mentor.name}</h4>
+					<p class="text-slate-600">{mentor.role}</p>
 				</div>
-
-				<!-- Special Thanks Card -->
+			</Reveal>
+			<Reveal>
 				<div
-					class="w-full max-w-xs rounded-xl border border-[#56A8A5]/30 bg-white p-6 text-center shadow-lg"
+					class="flex flex-col items-center rounded-xl bg-slate-50 p-8 text-center ring-1 ring-slate-200"
 				>
-					<h3 class="mb-6 text-2xl font-bold text-[#156B7D]">Special Thanks</h3>
+					<h3 class="mb-4 text-sm font-bold tracking-widest text-slate-500 uppercase">
+						Special Thanks
+					</h3>
 					<img
 						src={specialThanks.avatar}
 						alt={specialThanks.name}
-						class="mx-auto mb-4 w-28 rounded-full shadow"
+						class="mx-auto mb-4 h-28 w-28 rounded-full shadow-lg"
 					/>
-					<h4 class="mb-1 text-lg font-semibold text-[#156B7D]">{specialThanks.name}</h4>
-					<p class="text-sm text-gray-600">{specialThanks.role}</p>
+					<h4 class="text-xl font-bold text-slate-900">{specialThanks.name}</h4>
+					<p class="text-slate-600">{specialThanks.role}</p>
 				</div>
-			</div>
-		</Reveal>
+			</Reveal>
+		</div>
 	</section>
 
-	<!-- Footer -->
-	<footer class="bg-[#0f172a] py-6 text-center text-sm text-gray-300">
-		Shinkami AI — SIH 2025 | Not for Commercial Purposes | No copyright infringement intended
+	<footer class="bg-slate-900 text-slate-400">
+		<div class="mx-auto max-w-7xl px-8 py-8 text-center text-sm">
+			<p>
+				&copy; {new Date().getFullYear()} Shinkami AI — A Smart India Hackathon 2025 Submission.
+			</p>
+
+			<p class="mt-4 text-slate-500">
+				Made with <span class="text-white-500">&hearts;</span> by Parth Sidhu & Nikhil Rathaur
+				<br />
+				<span class="opacity-80"
+					>Electronics & Communication Engineering, Gati Shakti Vishwavidyalaya</span
+				>
+			</p>
+
+			<p class="mt-4 border-t border-slate-700 pt-4 text-xs opacity-60">
+				For academic and demonstration purposes only. Not for commercial use.
+			</p>
+		</div>
 	</footer>
 </div>
+
+<style>
+	:global(html) {
+		scroll-behavior: smooth;
+	}
+	.pattern-bg {
+		background-image: radial-gradient(#d1e8e2 0.5px, transparent 0.5px);
+		background-size: 15px 15px;
+	}
+</style>

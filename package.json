@@ -28,7 +28,10 @@
 		"vite": "^7.0.4"
 	},
 	"dependencies": {
+		"@lucide/svelte": "^0.544.0",
 		"clsx": "^2.1.1",
+		"firebase": "^12.3.0",
+		"lucide-svelte": "^0.544.0",
 		"papaparse": "^5.5.3",
 		"svelte-motion": "^0.12.2",
 		"tailwind-merge": "^3.3.1"

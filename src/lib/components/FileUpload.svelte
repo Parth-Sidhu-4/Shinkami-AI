@@ -23,8 +23,19 @@
 	<button
 		type="button"
 		on:click={triggerSelect}
-		class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold transition hover:bg-blue-500"
+		class="flex transform items-center space-x-2 rounded-xl bg-gradient-to-r from-[#156B7D] to-[#56A8A5] px-5 py-2.5 text-sm font-semibold text-white shadow-md transition hover:scale-105 hover:shadow-lg"
 	>
-		Upload File
+		<!-- Upload Icon -->
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			fill="none"
+			viewBox="0 0 24 24"
+			stroke-width="2"
+			stroke="currentColor"
+			class="h-5 w-5"
+		>
+			<path stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0l-4 4m4-4l4 4m-8 8h8" />
+		</svg>
+		<span>Upload File</span>
 	</button>
 </div>

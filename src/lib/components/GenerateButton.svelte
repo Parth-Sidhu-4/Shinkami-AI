@@ -5,10 +5,25 @@
 
 <button
 	on:click={() => dispatch('click')}
-	class="group relative inline-flex items-center justify-center overflow-hidden rounded-lg bg-gradient-to-tr from-blue-600 to-sky-500 px-6 py-3 font-bold text-white shadow-lg transition-all duration-300 ease-in-out hover:shadow-2xl"
+	class="group relative inline-flex items-center justify-center space-x-2 overflow-hidden rounded-xl bg-gradient-to-r from-[#56A8A5] to-[#82C24B] px-6 py-3 font-semibold text-white shadow-md transition-all duration-300 ease-out hover:scale-105 hover:shadow-xl"
 >
+	<!-- Glow effect -->
 	<span
-		class="absolute bottom-0 left-0 mb-9 ml-9 h-48 w-48 -translate-x-full translate-y-full rotate-[-40deg] rounded-full bg-sky-400 opacity-40 transition-all duration-500 ease-out group-hover:translate-x-0"
+		class="absolute inset-0 h-full w-full bg-gradient-to-r from-white/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"
 	></span>
+
+	<!-- Icon -->
+	<svg
+		xmlns="http://www.w3.org/2000/svg"
+		fill="none"
+		viewBox="0 0 24 24"
+		stroke-width="2"
+		stroke="currentColor"
+		class="relative h-5 w-5"
+	>
+		<path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+	</svg>
+
+	<!-- Label -->
 	<span class="relative">Generate Recommendation</span>
 </button>

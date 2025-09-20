@@ -1,0 +1,26 @@
+Train ID,Status,Recommendation,Readiness %,Odometer,Shunting Moves
+TS023,On Hold,Ready for service,,384665,1
+TS008,Ready,Ready for service,,390119.4,1
+TS003,Ready,Ready for service,,394367.2,4
+TS001,Ready,Ready for service,,382949.9,4
+TS005,Ready,Ready for service,,404692.2,0
+TS011,On Hold,Ready for service,,385076.8,4
+TS019,Excluded,Ready for service,,394636.5,4
+TS010,Excluded,Ready for service,,395888.3,4
+TS002,Ready,Ready for service,,386504.2,0
+TS022,Ready,Ready for service,,383128.4,5
+TS013,On Hold,Ready for service,,426383.0,2
+TS007,On Hold,Ready for service,,418394.9,3
+TS025,On Hold,Ready for service,,429106.2,0
+TS015,Excluded,Ready for service,,410277.9,5
+TS016,On Hold,Ready for service,,401988.4,2
+TS006,Ready,Ready for service,,383121.9,4
+TS014,Ready,Ready for service,,397061.8,2
+TS021,Excluded,Schedule maintenance soon,,400708.6,1
+TS012,Ready,Ready for service,,369367.2,2
+TS004,Excluded,Schedule maintenance soon,,392504.4,5
+TS018,On Hold,Schedule maintenance soon,,426025.1,5
+TS024,Excluded,Hold for immediate inspection,,416541.5,1
+TS020,Ready,Hold for immediate inspection,,356053.0,2
+TS017,On Hold,Hold for immediate inspection,,393703.9,1
+TS009,Ready,Hold for immediate inspection,,392871.7,4

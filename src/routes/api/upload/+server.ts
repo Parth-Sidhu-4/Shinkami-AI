@@ -15,8 +15,8 @@ export const POST: RequestHandler = async (event: RequestEvent) => {
 		// Convert to buffer
 		const buffer = Buffer.from(await file.arrayBuffer());
 
-		// Save in /static/uploads/
-		const uploadDir = path.join(process.cwd(), 'static', 'uploads');
+		// Use /tmp directory (Vercel allows writing here, but it's ephemeral)
+		const uploadDir = '/tmp';
 		if (!fs.existsSync(uploadDir)) {
 			fs.mkdirSync(uploadDir, { recursive: true });
 		}
@@ -26,8 +26,8 @@ export const POST: RequestHandler = async (event: RequestEvent) => {
 
 		return new Response(
 			JSON.stringify({
-				message: 'File uploaded successfully',
-				path: `/uploads/${file.name}`
+				message: 'File uploaded successfully (ephemeral)',
+				tmpPath: uploadPath
 			}),
 			{ status: 200, headers: { 'Content-Type': 'application/json' } }
 		);

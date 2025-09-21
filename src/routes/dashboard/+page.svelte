@@ -65,32 +65,21 @@
 					addToLog('CSV parse failed.');
 					return;
 				}
-				csvData = (results.data as any[]).map((row: any) => {
-					if (!row) return {};
-					let status = '';
-					switch ((row['rake_status_current'] || '').toLowerCase()) {
-						case 'in_service':
-							status = 'Ready';
-							break;
-						case 'in_ibl':
-							status = 'On Hold';
-							break;
-						case 'stabled':
-							status = 'Excluded';
-							break;
-						default:
-							status = row['rake_status_current'] || '';
-					}
-					return {
-						'Train ID': row['train_id'] ?? '',
-						Odometer: row['odometer_total_km'] ?? '',
-						Recommendation: row['recommendation'] ?? '',
-						'Readiness %': row['probability_of_use'] ?? '',
-						'Shunting Moves': row['shunting_moves_needed'] ?? '',
-						Status: status,
-						_original: row
-					};
-				});
+				csvData = results.data.map((row: any) => ({
+					'Train ID': row['train_id'] ?? '',
+					Odometer: row['odometer_total_km'] ?? '',
+					Recommendation: row['recommendation'] ?? '',
+					'Readiness %':
+						row['predicted_probability_of_use'] !== undefined
+							? (row['predicted_probability_of_use'] * 100).toFixed(1) + '%'
+							: row['probability_of_use'] !== undefined
+								? (row['probability_of_use'] * 100).toFixed(1) + '%'
+								: '',
+					'Shunting Moves': row['shunting_moves_needed'] ?? '',
+					Status: normalizeStatus(row['rake_status_current']),
+					_original: row
+				}));
+
 				isEdited = false;
 				addToLog(`CSV uploaded: ${uploadedFile.name}`);
 			},
@@ -125,6 +114,18 @@
 		csvData[rowIndex][key] = value;
 		isEdited = true;
 	}
+	function normalizeStatus(raw: string | undefined): string {
+		switch ((raw || '').toLowerCase()) {
+			case 'in_service':
+				return 'Ready';
+			case 'in_ibl':
+				return 'On Hold';
+			case 'stabled':
+				return 'Excluded';
+			default:
+				return raw || '';
+		}
+	}
 
 	async function generateRecommendation() {
 		if (!uploadedFile && !isEdited) {
@@ -152,6 +153,7 @@
 			const parsed = Papa.parse(respText, { header: true, skipEmptyLines: true });
 			if (!parsed.data || !Array.isArray(parsed.data))
 				throw new Error('Invalid CSV returned from API');
+
 			csvData = parsed.data.map((row: any) => ({
 				'Train ID': row['train_id'] ?? '',
 				Odometer: row['odometer_total_km'] ?? '',
@@ -163,9 +165,10 @@
 							? (row['probability_of_use'] * 100).toFixed(1) + '%'
 							: '',
 				'Shunting Moves': row['shunting_moves_needed'] ?? '',
-				Status: row['rake_status_current'] ?? '',
+				Status: normalizeStatus(row['rake_status_current']),
 				_original: row
 			}));
+
 			addToLog('New recommendations fetched from API.');
 			isEdited = false;
 		} catch (err) {

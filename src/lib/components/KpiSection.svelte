@@ -3,14 +3,16 @@
 
 	export let trains: any[]; // full CSV data
 	export let requiredServiceFleetSize: number;
+	export let riskStats: {
+		maintenance: number;
+		lowReadiness: number;
+		holdInspection: number;
+	};
 
-	// ✅ Use the renamed keys you created in +page.svelte
+	// ✅ Status-based counts
 	$: readyTrainsCount = trains.filter((t) => t['Status'] === 'Ready').length;
-
 	$: onHoldTrainsCount = trains.filter((t) => t['Status'] === 'On Hold').length;
-
 	$: excludedTrainsCount = trains.filter((t) => t.Status === 'Excluded').length;
-
 	$: totalShuntingMoves = trains.reduce((sum, t) => sum + (parseInt(t['Shunting Moves']) || 0), 0);
 </script>
 
@@ -91,6 +93,71 @@
 				stroke-linejoin="round"
 				stroke-width="2"
 				d="M13 10V3L4 14h7v7l9-11h-7z"
+			/>
+		</svg>
+	</KpiCard>
+</div>
+
+<!-- New Risk KPIs -->
+<div class="mb-8 grid grid-cols-1 gap-6 md:grid-cols-3">
+	<KpiCard
+		title="🛠 Maintenance Due"
+		value={riskStats.maintenance.toString()}
+		subtitle="Needs scheduling"
+	>
+		<svg
+			slot="icon"
+			xmlns="http://www.w3.org/2000/svg"
+			class="h-8 w-8 text-orange-500"
+			fill="none"
+			viewBox="0 0 24 24"
+			stroke="currentColor"
+		>
+			<path
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				stroke-width="2"
+				d="M9 17v-2h6v2m-7 4h8a2 2 0 002-2v-6a2 2 0 00-2-2h-1V7a4 4 0 10-8 0v4H8a2 2 0 00-2 2v6a2 2 0 002 2z"
+			/>
+		</svg>
+	</KpiCard>
+
+	<KpiCard title="📉 Low Readiness" value={riskStats.lowReadiness.toString()} subtitle="Below 60%">
+		<svg
+			slot="icon"
+			xmlns="http://www.w3.org/2000/svg"
+			class="h-8 w-8 text-purple-500"
+			fill="none"
+			viewBox="0 0 24 24"
+			stroke="currentColor"
+		>
+			<path
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				stroke-width="2"
+				d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+			/>
+		</svg>
+	</KpiCard>
+
+	<KpiCard
+		title="🔍 Hold for Inspection"
+		value={riskStats.holdInspection.toString()}
+		subtitle="Immediate action"
+	>
+		<svg
+			slot="icon"
+			xmlns="http://www.w3.org/2000/svg"
+			class="h-8 w-8 text-pink-500"
+			fill="none"
+			viewBox="0 0 24 24"
+			stroke="currentColor"
+		>
+			<path
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				stroke-width="2"
+				d="M12 8c-1.104 0-2 .896-2 2s.896 2 2 2a2 2 0 100-4zm0 10c-4.418 0-8-3.582-8-8s3.582-8 8-8 8 3.582 8 8-3.582 8-8 8z"
 			/>
 		</svg>
 	</KpiCard>

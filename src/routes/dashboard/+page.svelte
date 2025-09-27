@@ -165,12 +165,21 @@
 
 			// Update rows with new recommendations
 			if (result && result.predictions) {
-				csvData = csvData.map((row, idx) => ({
-					...row,
-					Recommendation: result.predictions[idx]?.recommendation ?? row.Recommendation,
-					'Readiness %': result.predictions[idx]?.readiness ?? row['Readiness %']
+				csvData = csvData.map((row: any, idx: number) => ({
+					'Train ID': row['train_id'] ?? '',
+					Odometer: row['odometer_total_km'] ?? '',
+					'Readiness %':
+						result.predictions[idx]?.readiness != null
+							? (result.predictions[idx].readiness * 100).toFixed(1) + '%'
+							: (row['Readiness %'] ?? ''),
+					Recommendation: result.predictions[idx]?.recommendation ?? row.Recommendation ?? '',
+					'Shunting Moves': row['shunting_moves_needed'] ?? '',
+					Status: normalizeStatus(row['rake_status_current'] ?? row.Status ?? ''),
+					_original: row
 				}));
+
 				addToLog('Recommendations generated successfully.');
+				isEdited = false;
 			} else {
 				addToLog('No predictions received from backend.');
 			}

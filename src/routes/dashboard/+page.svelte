@@ -147,13 +147,13 @@
 			loadingRecommendation = true;
 			const formData = new FormData();
 
-			// ✅ Always export the latest in-memory csvData
+			// Export current in-memory CSV
 			const csvString = exportEditedCsv();
 			const blob = new Blob([csvString], { type: 'text/csv' });
 			formData.append('file', blob, 'current.csv');
 			addToLog('Using current in-memory data for recommendations.');
 
-			// 🔗 Call backend
+			// Send to backend
 			const response = await fetch('/api/predict', {
 				method: 'POST',
 				body: formData
@@ -161,23 +161,22 @@
 
 			if (!response.ok) throw new Error('Failed to generate recommendation.');
 
-			const result = await response.json();
+			const csvText = await response.text(); // get CSV from backend
+			const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true });
 
-			// Update rows with new recommendations
-			if (result && result.predictions) {
+			if (parsed.data && Array.isArray(parsed.data)) {
 				csvData = csvData.map((row: any, idx: number) => ({
-					'Train ID': row['train_id'] ?? '',
-					Odometer: row['odometer_total_km'] ?? '',
+					'Train ID': row['Train ID'] ?? '',
+					Odometer: row['Odometer'] ?? '',
 					'Readiness %':
-						result.predictions[idx]?.readiness != null
-							? (result.predictions[idx].readiness * 100).toFixed(1) + '%'
+						parsed.data[idx]?.probability_of_use !== undefined
+							? (parseFloat(parsed.data[idx].probability_of_use) * 100).toFixed(1) + '%'
 							: (row['Readiness %'] ?? ''),
-					Recommendation: result.predictions[idx]?.recommendation ?? row.Recommendation ?? '',
-					'Shunting Moves': row['shunting_moves_needed'] ?? '',
-					Status: normalizeStatus(row['rake_status_current'] ?? row.Status ?? ''),
+					Recommendation: parsed.data[idx]?.recommendation ?? row.Recommendation ?? '',
+					'Shunting Moves': row['Shunting Moves'] ?? '',
+					Status: normalizeStatus(row.Status ?? ''),
 					_original: row
 				}));
-
 				addToLog('Recommendations generated successfully.');
 				isEdited = false;
 			} else {

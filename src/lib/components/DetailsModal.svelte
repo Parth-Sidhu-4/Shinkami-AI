@@ -9,7 +9,7 @@
 		update: { updatedTrain: Record<string, any> };
 	};
 
-	export let train: Record<string, any>;
+	export let train: Record<string, any> | null = null;
 	const dispatch: EventDispatcher<ModalEvents> = createEventDispatcher();
 
 	let step: 'details' | 'reason_hold' | 'reason_induct' = 'details';
@@ -21,14 +21,14 @@
 	let otherReasonText = '';
 
 	function closeModal() {
-		dispatch('update', { updatedTrain: train }); // Send back the updated train object
+		if (train) dispatch('update', { updatedTrain: train });
 		dispatch('close');
-		// Reset state after closing
+
 		setTimeout(() => {
 			step = 'details';
 			selectedReasons = [];
 			otherReasonText = '';
-		}, 200); // Delay to allow fade-out
+		}, 200);
 	}
 
 	// --- Data processing for display ---
@@ -47,7 +47,6 @@
 		depot: 'Depot',
 		train_id: 'Train ID',
 		rake_status_current: 'Rake Status Current',
-		// ... (all your other labels remain the same)
 		fitness_rolling_stock_expiry: 'Fitness Rolling Stock Expiry',
 		fitness_signalling_expiry: 'Fitness Signalling Expiry',
 		fitness_telecom_expiry: 'Fitness Telecom Expiry',
@@ -86,42 +85,61 @@
 		final_score: 'Final Score'
 	};
 
-	$: detailEntries = Object.entries(train._original || train)
-		.filter(([key]) => detailFieldLabels[key] && !excludedKeys.has(detailFieldLabels[key]))
-		.map(([key, value]) => ({ key, label: detailFieldLabels[key], value }));
+	$: detailEntries = train
+		? Object.entries(train._original || train)
+				.filter(([key]) => detailFieldLabels[key] && !excludedKeys.has(detailFieldLabels[key]))
+				.map(([key, value]) => ({ key, label: detailFieldLabels[key], value }))
+		: [];
 </script>
 
-<div on:click={closeModal} class="fixed inset-0 z-40 flex items-center justify-center bg-black/60">
+{#if train}
 	<div
-		on:click|stopPropagation
-		class="z-50 flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl"
+		on:click={closeModal}
+		class="fixed inset-0 z-40 flex items-center justify-center bg-black/60 p-4"
 	>
-		{#if step === 'details'}
-			<div in:slide={{ duration: 300 }}>
-				<header class="flex items-center justify-between border-b p-4">
-					<h2 class="text-xl font-bold">Train Details: {train['Train ID']}</h2>
-					<button on:click={closeModal} class="text-2xl text-gray-500 hover:text-gray-800"
-						>&times;</button
-					>
-				</header>
+		<div
+			on:click|stopPropagation
+			class="z-50 flex max-h-[90vh] w-full max-w-3xl flex-col rounded-xl bg-white shadow-2xl"
+		>
+			<!-- Header (fixed) -->
+			<header class="flex flex-shrink-0 items-center justify-between border-b p-4">
+				<h2 class="text-xl font-bold">Train Details: {train['Train ID'] ?? 'N/A'}</h2>
+				<button on:click={closeModal} class="text-2xl text-gray-500 hover:text-gray-800">
+					&times;
+				</button>
+			</header>
 
-				<div class="flex-1 overflow-y-auto p-6">
-					<div class="grid grid-cols-1 gap-x-8 gap-y-4 md:grid-cols-2">
-						{#each detailEntries as { key, label, value }}
-							<div>
-								<label for={key} class="text-sm font-semibold text-gray-500">{label}</label>
-								<input
-									id={key}
-									type="text"
-									value={train._original[key]}
-									on:input={(e) => (train._original[key] = (e.target as HTMLInputElement).value)}
-									class="mt-1 w-full rounded-md border border-gray-300 p-2 text-sm shadow-sm focus:border-teal-500 focus:ring-teal-500"
-								/>
-							</div>
-						{/each}
-					</div>
+			<!-- Scrollable body -->
+			<div class="flex-1 overflow-y-auto p-6">
+				<div class="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
+					{#each detailEntries as { key, label }}
+						<div class="flex flex-col">
+							<label for={key} class="text-sm font-semibold text-gray-500">{label}</label>
+							<input
+								id={key}
+								type="text"
+								value={train._original?.[key] ?? train[key] ?? ''}
+								on:input={(e) => {
+									const val = (e.target as HTMLInputElement).value;
+									if (!train._original) train._original = { ...train };
+									train._original[key] = val;
+								}}
+								class="mt-1 w-full rounded-md border border-gray-300 p-2 text-sm shadow-sm focus:border-teal-500 focus:ring-teal-500"
+							/>
+						</div>
+					{/each}
 				</div>
 			</div>
-		{/if}
+
+			<!-- Footer (fixed) -->
+			<div class="flex flex-shrink-0 justify-end border-t p-4">
+				<button
+					on:click={closeModal}
+					class="rounded bg-teal-500 px-4 py-2 text-white hover:bg-teal-600"
+				>
+					Save & Close
+				</button>
+			</div>
+		</div>
 	</div>
-</div>
+{/if}

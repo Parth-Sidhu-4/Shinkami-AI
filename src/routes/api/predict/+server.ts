@@ -1,11 +1,12 @@
-import type { RequestHandler, RequestEvent } from './$types';
+// src/routes/api/predict/+server.ts
+import type { RequestHandler } from '@sveltejs/kit';
 
-export const POST: RequestHandler = async (event: RequestEvent) => {
+export const POST: RequestHandler = async (event) => {
 	try {
-		// Forward the uploaded file to your ngrok FastAPI server
+		// Forward the uploaded CSV to your ngrok FastAPI server
 		const formData = await event.request.formData();
 
-		const upstreamResponse = await fetch('https://8b4d6db23391.ngrok-free.app/predict_csv/', {
+		const upstreamResponse = await fetch('https://3fe58d8f9855.ngrok-free.app/predict_csv/', {
 			method: 'POST',
 			body: formData,
 			headers: { 'ngrok-skip-browser-warning': 'true' }
@@ -16,6 +17,7 @@ export const POST: RequestHandler = async (event: RequestEvent) => {
 			return new Response(errText, { status: upstreamResponse.status });
 		}
 
+		// Return the CSV response directly to the frontend
 		const text = await upstreamResponse.text();
 		return new Response(text, {
 			headers: {

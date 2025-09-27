@@ -42,7 +42,7 @@
 		train_id: 'Train ID',
 		rake_status_current: 'Status',
 		recommendation: 'Recommendation',
-		probability_of_use: 'Readiness %',
+		predicted_probability_of_use: 'Readiness %',
 		odometer_total_km: 'Odometer',
 		shunting_moves_needed: 'Shunting Moves'
 	};
@@ -79,20 +79,28 @@
 					addToLog('CSV parse failed.');
 					return;
 				}
-				csvData = results.data.map((row: any) => ({
-					'Train ID': row['train_id'] ?? '',
-					Odometer: row['odometer_total_km'] ?? '',
-					Recommendation: row['recommendation'] ?? '',
-					'Readiness %':
-						row['predicted_probability_of_use'] !== undefined
-							? (row['predicted_probability_of_use'] * 100).toFixed(1) + '%'
-							: row['probability_of_use'] !== undefined
-								? (row['probability_of_use'] * 100).toFixed(1) + '%'
-								: '',
-					'Shunting Moves': row['shunting_moves_needed'] ?? '',
-					Status: normalizeStatus(row['rake_status_current']),
-					_original: row
-				}));
+
+				csvData = results.data.map((row: any) => {
+					// Normalize readiness to string with %
+					const rawVal = parseFloat(
+						row['predicted_probability_of_use'] || row['probability_of_use'] || 0
+					);
+					const readiness = !isNaN(rawVal)
+						? rawVal > 1
+							? rawVal.toFixed(1) + '%'
+							: (rawVal * 100).toFixed(1) + '%'
+						: '0%';
+
+					return {
+						'Train ID': row['train_id'] ?? '',
+						Odometer: row['odometer_total_km'] ?? '',
+						Recommendation: row['recommendation'] ?? '',
+						'Readiness %': row['predicted_probability_of_use'],
+						'Shunting Moves': row['shunting_moves_needed'] ?? '',
+						Status: normalizeStatus(row['rake_status_current']),
+						_original: row
+					};
+				});
 
 				isEdited = false;
 				addToLog(`CSV uploaded: ${uploadedFile.name}`);
@@ -145,11 +153,11 @@
 	async function generateRecommendation() {
 		try {
 			loadingRecommendation = true;
-			const formData = new FormData();
 
 			// Export current in-memory CSV
 			const csvString = exportEditedCsv();
 			const blob = new Blob([csvString], { type: 'text/csv' });
+			const formData = new FormData();
 			formData.append('file', blob, 'current.csv');
 			addToLog('Using current in-memory data for recommendations.');
 
@@ -161,22 +169,41 @@
 
 			if (!response.ok) throw new Error('Failed to generate recommendation.');
 
-			const csvText = await response.text(); // get CSV from backend
+			const csvText = await response.text();
 			const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true });
 
 			if (parsed.data && Array.isArray(parsed.data)) {
-				csvData = csvData.map((row: any, idx: number) => ({
-					'Train ID': row['Train ID'] ?? '',
-					Odometer: row['Odometer'] ?? '',
-					'Readiness %':
-						parsed.data[idx]?.probability_of_use !== undefined
-							? (parseFloat(parsed.data[idx].probability_of_use) * 100).toFixed(1) + '%'
-							: (row['Readiness %'] ?? ''),
-					Recommendation: parsed.data[idx]?.recommendation ?? row.Recommendation ?? '',
-					'Shunting Moves': row['Shunting Moves'] ?? '',
-					Status: normalizeStatus(row.Status ?? ''),
-					_original: row
-				}));
+				csvData = csvData.map((row: any, idx: number) => {
+					const prediction = parsed.data[idx] || {};
+
+					// Normalize readiness
+					const rawVal = parseFloat(prediction.predicted_probability_of_use);
+					const oldVal = parseFloat((row['Readiness %'] || '').replace('%', ''));
+					const readiness = !isNaN(rawVal)
+						? rawVal > 1
+							? rawVal.toFixed(1) + '%'
+							: (rawVal * 100).toFixed(1) + '%'
+						: !isNaN(oldVal)
+							? oldVal.toFixed(1) + '%'
+							: '0%';
+
+					const recommendation = prediction.recommendation || row.Recommendation || '';
+
+					return {
+						...row,
+						'Readiness %': row['predicted_probability_of_use'],
+						Recommendation: recommendation,
+						_original: {
+							...(row._original || {}),
+							predicted_probability_of_use: prediction.predicted_probability_of_use,
+							recommendation
+						}
+					};
+				});
+
+				// Force Svelte to detect array update
+				csvData = [...csvData];
+
 				addToLog('Recommendations generated successfully.');
 				isEdited = false;
 			} else {
@@ -417,7 +444,7 @@
 
 <!-- Details Modal -->
 {#if selectedTrain}
-	<DetailsModal {selectedTrain} {csvData} bind:isEdited on:close={closeModal} />
+	<DetailsModal train={selectedTrain} bind:isEdited on:close={closeModal} />
 {/if}
 
 <!-- Recommendation Modal -->

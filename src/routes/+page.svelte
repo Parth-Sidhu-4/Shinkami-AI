@@ -53,7 +53,7 @@
 	};
 	const specialThanks = {
 		name: 'Dr. Vipul Kumar Mishra',
-		role: 'SPOC, ',
+		role: 'SPOC, Gati Shakti Vishwavidyalaya ',
 		avatar: 'https://i.ibb.co/XfHY3YYy/Dr-Vipul-Kumar-Mishra.jpg'
 	};
 	const technologies = [

@@ -4,7 +4,7 @@ export async function getPredictionsFromApi(file: File): Promise<File> {
 	formData.append('file', file);
 
 	const response = await fetch(
-		'https://8b4d6db23391.ngrok-free.app/docs#/default/predict_csv_predict_csv__post',
+		'https://3fe58d8f9855.ngrok-free.app/docs#/default/predict_csv_predict_csv__post',
 		{
 			method: 'POST',
 			body: formData

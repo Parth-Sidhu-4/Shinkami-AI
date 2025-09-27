@@ -5,7 +5,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		// Forward the uploaded file to your ngrok FastAPI server
 		const formData = await request.formData();
 
-		const upstreamResponse = await fetch('https://a9db5727fd40.ngrok-free.app/predict_csv/', {
+		const upstreamResponse = await fetch('https://8b4d6db23391.ngrok-free.app/predict_csv/', {
 			method: 'POST',
 			body: formData,
 			// only needed if ngrok blocks server requests with banner
